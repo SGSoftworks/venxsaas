@@ -1,0 +1,132 @@
+import { type ReactNode } from 'react'
+import { Navigate, useLocation } from 'react-router-dom'
+import { useAuthStore } from '@/store/useAuthStore'
+import { buildWhatsAppUrl, APP_CONFIG } from '@/lib/appConfig'
+import { Loader2, AlertCircle, Ban, Clock, MessageCircle, Mail } from 'lucide-react'
+import iconApp from '@/assets/branding/icon-app.png'
+
+function FullScreenLoader() {
+  return (
+    <div className="flex h-screen w-full items-center justify-center bg-slate-50">
+      <div className="flex flex-col items-center gap-4">
+        <img src={iconApp} alt="" className="w-12 h-12" />
+        <Loader2 className="w-6 h-6 text-brand-600 animate-spin" />
+      </div>
+    </div>
+  )
+}
+
+function StatusMessage({ estado }: { estado: string }) {
+  const config: Record<string, { icon: typeof Clock; color: string; title: string; message: string }> = {
+    suspended: {
+      icon: Ban, color: 'text-red-600 bg-red-100',
+      title: 'Cuenta suspendida',
+      message: 'Tu cuenta ha sido suspendida temporalmente. Ponte en contacto con soporte para mas informacion.',
+    },
+    cancelled: {
+      icon: AlertCircle, color: 'text-gray-500 bg-gray-100',
+      title: 'Cuenta cancelada',
+      message: 'Tu cuenta ha sido cancelada. Si crees que esto es un error, contacta a soporte.',
+    },
+    pending_payment: {
+      icon: Clock, color: 'text-amber-600 bg-amber-100',
+      title: 'Pago pendiente',
+      message: 'Tu cuenta aun no ha sido activada. Completa el pago para acceder al sistema.',
+    },
+    pending_approval: {
+      icon: Clock, color: 'text-amber-600 bg-amber-100',
+      title: 'Cuenta en revision',
+      message: 'Tu pago ha sido confirmado. Un administrador esta revisando tu cuenta y la activara pronto.',
+    },
+  }
+
+  const c = config[estado] || { icon: AlertCircle, color: 'text-gray-500 bg-gray-100', title: 'Estado desconocido', message: 'Contacta a soporte.' }
+  const Icon = c.icon
+
+  return (
+    <div className="flex h-screen w-full items-center justify-center bg-slate-50 p-4">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 max-w-md w-full text-center animate-scale-in">
+        <div className="flex flex-col items-center gap-4">
+          <div className={`w-14 h-14 ${c.color.split(' ')[1]} rounded-2xl flex items-center justify-center`}>
+            <Icon className={`w-7 h-7 ${c.color.split(' ')[0]}`} />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold text-slate-900">{c.title}</h2>
+            <p className="text-sm text-slate-500 mt-2">{c.message}</p>
+          </div>
+
+          {(estado === 'pending_payment' || estado === 'pending_approval') && (
+            <div className="flex items-center gap-3 mt-1">
+              <a
+                href={buildWhatsAppUrl(
+                  estado === 'pending_payment'
+                    ? 'Hola. Ya realice mi pago en VenxPOS. Podrian verificar y activar mi cuenta?'
+                    : 'Hola. Mi cuenta esta en revision en VenxPOS. Podrian agilizar el proceso?'
+                )}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-medium bg-green-600 text-white hover:bg-green-700 transition-colors"
+              >
+                <MessageCircle className="w-3.5 h-3.5" />
+                WhatsApp
+              </a>
+              <a
+                href={`mailto:${APP_CONFIG.email}`}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
+              >
+                <Mail className="w-3.5 h-3.5" />
+                Email
+              </a>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function NoAccessMessage({ isPOSUser }: { isPOSUser: boolean }) {
+  const { logout } = useAuthStore()
+  return (
+    <div className="flex h-screen w-full items-center justify-center bg-slate-50 p-4">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 max-w-md w-full text-center animate-scale-in">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center">
+            <AlertCircle className="w-7 h-7 text-amber-600" />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold text-slate-900">
+              {isPOSUser ? 'Esta cuenta es solo para POS' : 'Sin acceso'}
+            </h2>
+            <p className="text-sm text-slate-500 mt-2">
+              {isPOSUser
+                ? 'Esta cuenta solo tiene acceso al sistema POS de escritorio. Para acceder al panel SaaS, registra tu negocio primero.'
+                : 'No tienes acceso al panel SaaS. Si crees que esto es un error, contacta a soporte.'}
+            </p>
+          </div>
+          <button
+            onClick={logout}
+            className="mt-2 px-6 py-2.5 bg-brand-600 text-white rounded-lg font-semibold text-sm hover:bg-brand-700 transition-colors"
+          >
+            Cerrar sesión
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export function AuthGuard({ children }: { children: ReactNode }) {
+  const { session, tenant, isSuperadmin, loading, initialized } = useAuthStore()
+  const location = useLocation()
+
+  if (!initialized || loading) return <FullScreenLoader />
+  if (!session) return <Navigate to="/login" replace />
+  if (!tenant && !isSuperadmin) return <NoAccessMessage isPOSUser={!tenant && !!session} />
+  if (tenant?.estado === 'pending_payment') return <StatusMessage estado="pending_payment" />
+  if (tenant?.estado === 'suspended') return <StatusMessage estado="suspended" />
+  if (tenant?.estado === 'cancelled') return <StatusMessage estado="cancelled" />
+  if (tenant?.estado === 'pending_approval') return <StatusMessage estado="pending_approval" />
+
+  return <>{children}</>
+}

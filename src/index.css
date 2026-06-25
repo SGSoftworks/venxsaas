@@ -1,0 +1,134 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-50: #f5f0ff;
+  --color-brand-100: #e8ddff;
+  --color-brand-200: #d0baff;
+  --color-brand-300: #b088ff;
+  --color-brand-400: #8b5cf6;
+  --color-brand-500: #7a40f0;
+  --color-brand-600: #6D3CF5;
+  --color-brand-700: #5B2EE0;
+  --color-brand-800: #4A1FC4;
+  --color-brand-900: #3A0FA0;
+  --color-accent-50: #e6faf8;
+  --color-accent-100: #b3f2ed;
+  --color-accent-200: #80e9e1;
+  --color-accent-500: #16D6C1;
+  --color-accent-600: #12C0AE;
+  --color-success-50: #ecfdf5;
+  --color-success-100: #d1fae5;
+  --color-success-200: #a7f3d0;
+  --color-success-500: #10b981;
+  --color-success-600: #059669;
+  --color-warning-50: #fffbeb;
+  --color-warning-100: #fef3c7;
+  --color-warning-200: #fde68a;
+  --color-warning-500: #f59e0b;
+  --color-warning-600: #d97706;
+  --color-danger-50: #fef2f2;
+  --color-danger-100: #fee2e2;
+  --color-danger-200: #fecaca;
+  --color-danger-500: #ef4444;
+  --color-surface: #f8fafc;
+}
+
+:root {
+  --color-primary: #6D3CF5;
+  --color-primary-dark: #5B2EE0;
+  --color-primary-light: #E8DDFF;
+  --color-primary-border: #D0BAFF;
+  --color-accent: #16D6C1;
+  --color-navy: #0F172A;
+  --color-success: #10B981;
+  --color-success-light: #D1FAE5;
+  --color-success-border: #A7F3D0;
+  --color-warning: #F59E0B;
+  --color-warning-light: #FEF3C7;
+  --color-warning-border: #FDE68A;
+  --color-danger: #EF4444;
+  --color-danger-light: #FEE2E2;
+  --color-danger-border: #FECACA;
+  --color-surface: #FFFFFF;
+  --color-surface-alt: #F8FAFC;
+  --color-border: #E2E8F0;
+  --color-text-primary: #0F172A;
+  --color-text-secondary: #64748B;
+  --color-icon: #94A3B8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--color-surface-alt);
+  color: var(--color-navy);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes drift {
+  0% { transform: translateY(0) translateX(0); opacity: 0; }
+  10% { opacity: 0.6; }
+  90% { opacity: 0.6; }
+  100% { transform: translateY(-120px) translateX(40px); opacity: 0; }
+}
+
+@keyframes drawIn {
+  from { stroke-dashoffset: 200; opacity: 0; }
+  to { stroke-dashoffset: 0; opacity: 1; }
+}
+
+@keyframes saleBlink {
+  0%, 100% { opacity: 0; transform: scale(0.85); }
+  15%, 35% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0; transform: scale(0.85); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.5s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.25s ease-out forwards;
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s ease-in-out infinite;
+}

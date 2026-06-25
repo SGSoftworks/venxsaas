@@ -1,0 +1,27 @@
+-- Clean all test data: keep only superadmin + plans
+
+DELETE FROM public.ventas_conflicto;
+DELETE FROM public.devolucion_detalles;
+DELETE FROM public.devoluciones;
+DELETE FROM public.movimientos_inventario;
+DELETE FROM public.cierres_caja;
+DELETE FROM public.aperturas_caja;
+DELETE FROM public.venta_detalles;
+DELETE FROM public.ventas;
+DELETE FROM public.inventario_sucursal;
+DELETE FROM public.eventos_auditoria;
+DELETE FROM public.audit_logs;
+DELETE FROM public.facturas_saas;
+DELETE FROM public.subscription_events;
+DELETE FROM public.payments;
+DELETE FROM public.subscriptions;
+DELETE FROM public.branch_accounts;
+DELETE FROM public.productos;
+DELETE FROM public.categorias;
+DELETE FROM public.usuarios;
+DELETE FROM public.sucursales;
+DELETE FROM public.empresas;
+DELETE FROM public.tenants;
+DELETE FROM public.invoice_counter;
+
+DO $$ BEGIN RAISE NOTICE 'Datos de prueba eliminados. Solo quedan superadmin y planes.'; END $$;
