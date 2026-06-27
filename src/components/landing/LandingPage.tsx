@@ -240,7 +240,7 @@ const faqItems = [
   {
     question: '¿Qué incluye el pago inicial?',
     answer:
-      'El pago inicial cubre la implementación completa del sistema: configuración técnica de tu cuenta, parametrización del sistema según tu negocio, carga de productos iniciales, activación del tenant en la nube y capacitación inicial. Este pago no es reembolsable una vez iniciado el proceso de implementación.',
+      'El pago inicial cubre la implementación completa del sistema: configuración técnica de tu cuenta, parametrización del sistema según tu negocio, carga de productos iniciales, activación de cuenta y capacitación inicial. Este pago no es reembolsable una vez iniciado el proceso de implementación.',
   },
   {
     question: '¿Qué incluye la mensualidad?',
@@ -260,12 +260,12 @@ const faqItems = [
   {
     question: '¿Qué sucede si olvido mi contraseña?',
     answer:
-      'Si olvidas tu contraseña, puedes solicitar un restablecimiento a través de la opción "¿Olvidaste tu contraseña?" en la página de inicio de sesión. También puedes contactar a la Gerencia por WhatsApp para que te asignen una nueva contraseña temporal.',
+      'Si olvidas tu contraseña, puedes solicitar un restablecimiento a través de la Gerencia por WhatsApp para que te asignen una nueva contraseña temporal.',
   },
   {
     question: '¿Cómo descargo mis facturas?',
     answer:
-      'Puedes descargar tus facturas desde la sección "Facturación" en tu panel de administración. Todas las facturas están disponibles en formato PDF y cumplen con los requisitos de facturación electrónica de la DIAN. También recibirás una copia por correo electrónico.',
+      'Puedes descargar tus facturas desde la sección "Facturación" en tu panel de administración. Todas las facturas están disponibles en formato PDF. También recibirás una copia por correo electrónico si lo pides desde atención al cliente por medio de WhatsApp.',
   },
   {
     question: '¿Cómo contacto soporte?',
@@ -315,7 +315,7 @@ const faqItems = [
   {
     question: '¿Qué ocurre si cancelo mi suscripción? ¿Puedo volver después?',
     answer:
-      'Si cancelas tu suscripción, mantienes acceso completo hasta el final del ciclo de facturación pagado. Tus datos se conservan por 90 días después de la cancelación, tiempo durante el cual puedes reactivar tu cuenta sin pérdida de información. Transcurrido ese plazo, los datos se eliminan irreversiblemente. Si deseas volver después, puedes contactarnos para crear una nueva cuenta.',
+      'Si cancelas tu suscripción, mantienes acceso completo hasta el final del ciclo de facturación pagado. Tus datos se eliminaran después de la cancelación. Transcurrido ese plazo, los datos se eliminan irreversiblemente. Si deseas volver después, puedes contactarnos para crear una nueva cuenta.',
   },
   {
     question: '¿Qué pasa cuando mi plan vence?',
