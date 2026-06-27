@@ -20,10 +20,10 @@ export function PaymentFailed() {
               </p>
             )}
             <Link
-              to="/registro"
+              to="/"
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 text-white text-sm font-medium rounded-lg hover:bg-brand-700 transition-colors mt-2"
             >
-              Intentar de nuevo
+              Ir al inicio
             </Link>
           </div>
         </div>

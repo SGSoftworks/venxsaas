@@ -5,7 +5,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/useAuthStore'
 import { useUIStore } from '@/store/useUIStore'
 import { loginSchema, type LoginForm } from '@/lib/validators'
-import { Eye, EyeOff, Loader2 } from 'lucide-react'
+import { Eye, EyeOff, Loader2, ExternalLink } from 'lucide-react'
+import { APP_CONFIG } from '@/lib/appConfig'
 import iconApp from '@/assets/branding/icon-app.png'
 
 export function LoginPage() {
@@ -128,6 +129,18 @@ export function LoginPage() {
             <p className="text-center text-xs text-slate-400 mt-6">
               Contacta a Gerencia para solicitar acceso.
             </p>
+            <div className="mt-6 pt-6 border-t border-slate-100">
+              <p className="text-xs text-slate-400 text-center mb-2">¿Buscas el Sistema POS?</p>
+              <a
+                href={APP_CONFIG.POS_WEB_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-1.5 w-full text-sm font-medium text-brand-600 hover:text-brand-700 transition-colors"
+              >
+                Acceder al POS
+                <ExternalLink size={14} />
+              </a>
+            </div>
         </div>
       </div>
     </div>

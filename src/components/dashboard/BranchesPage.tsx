@@ -649,7 +649,11 @@ export function BranchesPage() {
   const atLimit = maxSucursales > 0 && activeCount >= maxSucursales
 
   const handleCreate = async (form: CreateBranchForm) => {
-    if (!tenant || atLimit) return
+    if (!tenant) return
+    if (atLimit) {
+      addToast('warning', `Has alcanzado el límite de ${maxSucursales} sucursales de tu plan. Mejora tu plan para crear más.`)
+      return
+    }
     try {
       setCreateLoading(true)
 

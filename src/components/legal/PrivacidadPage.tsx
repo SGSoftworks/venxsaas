@@ -1,191 +1,167 @@
-import { Link } from 'react-router-dom'
+import { buildWhatsAppUrl, APP_CONFIG } from '@/lib/appConfig'
+import { LegalLayout, type LegalSection } from './LegalLayout'
+import { Mail, MessageCircle } from 'lucide-react'
+
+const sections: LegalSection[] = [
+  { id: 'datos-recopilados', title: '1. Datos que Recopilamos' },
+  { id: 'finalidad', title: '2. Finalidad del Tratamiento' },
+  { id: 'seguridad', title: '3. Almacenamiento y Seguridad' },
+  { id: 'conservacion', title: '4. Conservación de Datos' },
+  { id: 'derechos', title: '5. Derechos del Titular' },
+  { id: 'transferencia', title: '6. Transferencia Internacional' },
+  { id: 'cookies', title: '7. Cookies' },
+  { id: 'contacto', title: '8. Contacto' },
+]
 
 export function PrivacidadPage() {
   return (
-    <div className="min-h-screen bg-slate-50 py-12 px-4">
-      <div className="max-w-3xl mx-auto">
-        <Link
-          to="/"
-          className="text-sm text-brand-600 hover:text-brand-700 transition-colors inline-block mb-6"
-        >
-          &larr; Volver al inicio
-        </Link>
+    <LegalLayout title="Política de Privacidad" sections={sections}>
+      <Section id="datos-recopilados" num="1" title="Datos que Recopilamos">
+        <p className="text-sm text-slate-600 leading-relaxed mb-3">
+          En VenxPOS recopilamos únicamente los datos estrictamente necesarios para la
+          prestación del Servicio, de conformidad con el principio de finalidad establecido
+          en la Ley 1581 de 2012:
+        </p>
+        <ul className="list-disc pl-5 space-y-1.5 text-sm text-slate-600 leading-relaxed">
+          <li><span className="font-medium text-slate-700">Nombre:</span> nombres y apellidos del titular o representante legal.</li>
+          <li><span className="font-medium text-slate-700">Correo electrónico:</span> dirección de correo del contacto principal.</li>
+          <li><span className="font-medium text-slate-700">Teléfono:</span> número de contacto comercial.</li>
+          <li><span className="font-medium text-slate-700">Empresa:</span> razón social o nombre comercial del establecimiento.</li>
+          <li><span className="font-medium text-slate-700">NIT:</span> número de identificación tributaria del comercio.</li>
+          <li><span className="font-medium text-slate-700">Dirección:</span> dirección física del establecimiento principal.</li>
+          <li><span className="font-medium text-slate-700">Actividad comercial:</span> sector o tipo de comercio del Cliente.</li>
+          <li><span className="font-medium text-slate-700">Historial de pagos:</span> registro de transacciones y facturación.</li>
+          <li><span className="font-medium text-slate-700">Facturas:</span> documentos electrónicos generados por el Servicio.</li>
+          <li><span className="font-medium text-slate-700">Inventario:</span> registro de productos y existencias del comercio.</li>
+          <li><span className="font-medium text-slate-700">Ventas:</span> transacciones comerciales registradas en la plataforma.</li>
+          <li><span className="font-medium text-slate-700">Sucursales:</span> sedes o puntos de venta asociados a la cuenta.</li>
+        </ul>
+        <p className="text-sm text-slate-600 leading-relaxed mt-3">
+          VenxPOS no almacena números de tarjeta de crédito ni débito, CVV ni fechas de
+          vencimiento. Estos datos son gestionados exclusivamente por Wompi (Bancolombia S.A.)
+          bajo sus propios estándares de seguridad PCI-DSS.
+        </p>
+      </Section>
 
-        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-          <div className="bg-gradient-to-r from-brand-600 to-brand-800 text-white px-8 py-6">
-            <h1 className="text-xl font-bold">Politica de Privacidad</h1>
-          </div>
+      <Section id="finalidad" num="2" title="Finalidad del Tratamiento">
+        <p className="text-sm text-slate-600 leading-relaxed mb-3">
+          Los datos recopilados se tratan para las siguientes finalidades legítimas:
+        </p>
+        <ul className="list-disc pl-5 space-y-1.5 text-sm text-slate-600 leading-relaxed">
+          <li>Prestación del Servicio contratado y todas sus funcionalidades.</li>
+          <li>Soporte técnico y atención al Cliente.</li>
+          <li>Facturación, procesamiento de pagos y gestión de suscripciones.</li>
+          <li>Generación de analíticas y reportes operativos.</li>
+          <li>Seguridad de la plataforma, detección y prevención de fraudes.</li>
+          <li>Cumplimiento de obligaciones legales, fiscales y contables colombianas.</li>
+          <li>Mejora continua del Servicio y desarrollo de nuevas funcionalidades.</li>
+          <li>Comunicaciones operativas y notificaciones de servicio.</li>
+        </ul>
+      </Section>
 
-          <div className="px-8 py-6 space-y-0">
-            <p className="text-xs text-slate-400 mb-6">
-              Ultima actualizacion: 21 de junio de 2026
-            </p>
+      <Section id="seguridad" num="3" title="Almacenamiento y Seguridad">
+        <p className="text-sm text-slate-600 leading-relaxed">
+          Los datos se almacenan en servidores seguros de Supabase sobre infraestructura AWS
+          (Amazon Web Services), con cifrado en tránsito mediante TLS 1.3 y cifrado en reposo
+          AES-256. Las contraseñas se almacenan con hash bcrypt con sal única por usuario.
+          VenxPOS implementa medidas técnicas, administrativas y organizacionales para proteger
+          los datos contra acceso no autorizado, pérdida, alteración o divulgación, incluyendo
+          control de acceso basado en roles (RBAC), autenticación segura y monitoreo continuo
+          de la plataforma. Sin embargo, ningún sistema de almacenamiento o transmisión por
+          internet es completamente seguro, por lo cual no se puede garantizar seguridad absoluta.
+        </p>
+      </Section>
 
-            <section className="py-5 border-t border-slate-100">
-              <h2 className="text-base font-semibold text-slate-900 mb-3">
-                1. Datos que Recolectamos
-              </h2>
-              <p className="text-sm text-slate-600 leading-relaxed mb-3">
-                En VenxPOS recolectamos unicamente los datos estrictamente necesarios
-                para la prestacion del Servicio, de conformidad con el principio de
-                finalidad establecido en la Ley 1581 de 2012:
-              </p>
-              <ul className="list-disc pl-5 space-y-1.5 text-sm text-slate-600 leading-relaxed">
-                <li>
-                  <span className="font-medium text-slate-700">Datos de negocio:</span>{' '}
-                  razon social, nombre comercial, NIT, direccion del establecimiento.
-                </li>
-                <li>
-                  <span className="font-medium text-slate-700">Datos de contacto:</span>{' '}
-                  correo electronico, numero de telefono comercial.
-                </li>
-                <li>
-                  <span className="font-medium text-slate-700">Datos transaccionales:</span>{' '}
-                  registro de ventas, inventario, productos, clientes y facturacion
-                  generados dentro del uso del Servicio.
-                </li>
-                <li>
-                  <span className="font-medium text-slate-700">Datos de pago:</span>{' '}
-                  referencias de transaccion de Wompi. VenxPOS no almacena numeros
-                  de tarjeta de credito ni debito, CVV ni fechas de vencimiento.
-                  Estos datos son gestionados exclusivamente por Wompi (Bancolombia
-                  S.A.) bajo sus propios estandares de seguridad PCI-DSS.
-                </li>
-                <li>
-                  <span className="font-medium text-slate-700">Datos de uso:</span>{' '}
-                  interacciones con la plataforma, registros de acceso, direccion IP
-                  y tipo de navegador con fines de diagnostico y mejora del servicio.
-                </li>
-              </ul>
-            </section>
+      <Section id="conservacion" num="4" title="Conservación de Datos">
+        <p className="text-sm text-slate-600 leading-relaxed mb-3">
+          Conservamos los datos personales mientras la cuenta del Cliente permanezca activa.
+          Al cancelar la suscripción, los datos se conservan por un período de noventa (90)
+          días calendario para facilitar la reactivación, tras el cual son eliminados de manera
+          irreversible. Los datos de facturación y registros contables se conservan por el
+          término de cinco (5) años exigido por el Estatuto Tributario colombiano y la
+          Resolución 000042 de 2020 de la DIAN.
+        </p>
+        <p className="text-sm text-slate-600 leading-relaxed">
+          El Cliente puede solicitar en cualquier momento la eliminación anticipada de sus
+          datos contactando a la Gerencia, siempre que no exista una obligación legal que
+          impida dicha eliminación.
+        </p>
+      </Section>
 
-            <section className="py-5 border-t border-slate-100">
-              <h2 className="text-base font-semibold text-slate-900 mb-3">
-                2. Finalidad del Tratamiento
-              </h2>
-              <p className="text-sm text-slate-600 leading-relaxed mb-3">
-                Los datos recolectados se tratan para las siguientes finalidades
-                legitimas, informadas y autorizadas por el titular:
-              </p>
-              <ul className="list-disc pl-5 space-y-1.5 text-sm text-slate-600 leading-relaxed">
-                <li>Proveer, mantener y mejorar el Servicio contratado.</li>
-                <li>Procesar pagos y gestionar el ciclo de suscripcion.</li>
-                <li>Emitir facturas electronicas y documentos equivalentes.</li>
-                <li>
-                  Enviar comunicaciones operativas, notificaciones de servicio y
-                  soporte tecnico.
-                </li>
-                <li>
-                  Cumplir las obligaciones legales, fiscales y contables bajo la
-                  legislacion colombiana.
-                </li>
-                <li>Detectar y prevenir fraudes o usos no autorizados.</li>
-              </ul>
-            </section>
+      <Section id="derechos" num="5" title="Derechos del Titular (Ley 1581 de 2012)">
+        <p className="text-sm text-slate-600 leading-relaxed mb-3">
+          De conformidad con la Ley 1581 de 2012 y el Decreto Reglamentario 1377 de 2013,
+          como titular de los datos personales usted tiene derecho a:
+        </p>
+        <ul className="list-disc pl-5 space-y-1.5 text-sm text-slate-600 leading-relaxed">
+          <li><span className="font-medium text-slate-700">Consultar</span> sus datos personales en cualquier momento.</li>
+          <li><span className="font-medium text-slate-700">Actualizar</span> la información registrada cuando sea necesario.</li>
+          <li><span className="font-medium text-slate-700">Rectificar</span> datos inexactos o incompletos.</li>
+          <li><span className="font-medium text-slate-700">Eliminar</span> sus datos cuando no exista un deber legal que lo impida.</li>
+          <li><span className="font-medium text-slate-700">Solicitar copia</span> de la autorización otorgada para el tratamiento.</li>
+          <li><span className="font-medium text-slate-700">Revocar</span> la autorización para el tratamiento de sus datos.</li>
+          <li><span className="font-medium text-slate-700">Presentar quejas</span> ante la Superintendencia de Industria y Comercio (SIC) por infracciones a la Ley de Habeas Data.</li>
+        </ul>
+      </Section>
 
-            <section className="py-5 border-t border-slate-100">
-              <h2 className="text-base font-semibold text-slate-900 mb-3">
-                3. Almacenamiento y Seguridad
-              </h2>
-              <p className="text-sm text-slate-600 leading-relaxed">
-                Los datos se almacenan en servidores seguros de Supabase sobre
-                infraestructura AWS (Amazon Web Services), con cifrado en transito
-                mediante TLS 1.3 y cifrado en reposo AES-256. Las contrasenas se
-                almacenan con hash bcrypt con sal unica por usuario. VenxPOS
-                implementa medidas tecnicas, administrativas y organizacionales para
-                proteger los datos contra acceso no autorizado, perdida, alteracion
-                o divulgacion. Sin embargo, ningun sistema de almacenamiento o
-                transmision por internet es completamente seguro, por lo cual no se
-                puede garantizar seguridad absoluta.
-              </p>
-            </section>
+      <Section id="transferencia" num="6" title="Transferencia Internacional">
+        <p className="text-sm text-slate-600 leading-relaxed">
+          Los datos pueden ser almacenados y procesados en servidores ubicados fuera de Colombia
+          (Estados Unidos, a través de AWS/Supabase). Al aceptar esta Política, el Cliente autoriza
+          expresamente la transferencia internacional de sus datos bajo los estándares de protección
+          aplicables. VenxPOS exige contractualmente a sus proveedores de infraestructura el
+          cumplimiento de medidas de seguridad equivalentes a las exigidas por la legislación colombiana.
+        </p>
+      </Section>
 
-            <section className="py-5 border-t border-slate-100">
-              <h2 className="text-base font-semibold text-slate-900 mb-3">
-                4. Retencion de Datos
-              </h2>
-              <p className="text-sm text-slate-600 leading-relaxed">
-                Conservamos los datos personales mientras la cuenta del usuario
-                permanezca activa. Al cancelar la suscripcion, los datos se conservan
-                por un periodo de noventa (90) dias calendario para facilitar la
-                reactivacion, tras el cual son eliminados de manera irreversible.
-                Los datos de facturacion y registros contables se conservan por el
-                termino de cinco (5) anos exigido por el Estatuto Tributario
-                colombiano y la Resolucion 000042 de 2020 de la DIAN.
-              </p>
-            </section>
+      <Section id="cookies" num="7" title="Cookies">
+        <p className="text-sm text-slate-600 leading-relaxed">
+          VenxPOS utiliza cookies técnicas, funcionales y analíticas para el correcto funcionamiento
+          de la plataforma, la autenticación de usuarios y la mejora de la experiencia de navegación.
+          Para obtener información detallada sobre los tipos de cookies utilizadas, su finalidad y
+          cómo configurarlas, consulte nuestra{' '}
+          <a href="/legal/cookies" className="text-brand-600 hover:underline">Política de Cookies</a>.
+        </p>
+      </Section>
 
-            <section className="py-5 border-t border-slate-100">
-              <h2 className="text-base font-semibold text-slate-900 mb-3">
-                5. Derechos del Titular (Ley 1581 de 2012)
-              </h2>
-              <p className="text-sm text-slate-600 leading-relaxed mb-3">
-                De conformidad con la Ley 1581 de 2012 y el Decreto Reglamentario
-                1377 de 2013, como titular de los datos personales usted tiene
-                derecho a:
-              </p>
-              <ul className="list-disc pl-5 space-y-1.5 text-sm text-slate-600 leading-relaxed">
-                <li>
-                  Conocer, actualizar y rectificar sus datos personales (articulo 8,
-                  literal a).
-                </li>
-                <li>
-                  Solicitar prueba de la autorizacion otorgada para el tratamiento
-                  (articulo 8, literal b).
-                </li>
-                <li>
-                  Ser informado sobre el uso que se ha dado a sus datos, previa
-                  solicitud (articulo 8, literal c).
-                </li>
-                <li>
-                  Revocar la autorizacion y solicitar la supresion de sus datos
-                  cuando no exista un deber legal o contractual que impida su
-                  eliminacion (articulo 8, literales e y f).
-                </li>
-                <li>
-                  Presentar quejas ante la Superintendencia de Industria y Comercio
-                  (SIC) por infracciones a la Ley de Habeas Data.
-                </li>
-              </ul>
-            </section>
-
-            <section className="py-5 border-t border-slate-100">
-              <h2 className="text-base font-semibold text-slate-900 mb-3">
-                6. Transferencia Internacional
-              </h2>
-              <p className="text-sm text-slate-600 leading-relaxed">
-                Los datos pueden ser almacenados y procesados en servidores ubicados
-                fuera de Colombia (Estados Unidos, a traves de AWS/Supabase). Al
-                aceptar esta Politica, usted autoriza expresamente la transferencia
-                internacional de sus datos bajo los estandares de proteccion
-                aplicables. VenxPOS exige contractualmente a sus proveedores de
-                infraestructura el cumplimiento de medidas de seguridad equivalentes
-                a las exigidas por la legislacion colombiana.
-              </p>
-            </section>
-
-            <section className="py-5 border-t border-slate-100">
-              <h2 className="text-base font-semibold text-slate-900 mb-3">
-                7. Contacto para el Ejercicio de Derechos
-              </h2>
-              <p className="text-sm text-slate-600 leading-relaxed">
-                Para ejercer sus derechos como titular, presentar consultas, quejas
-                o solicitar informacion sobre el tratamiento de sus datos personales,
-                comuniquese a:{' '}
-                <a
-                  href="mailto:soporte@venxpos.com"
-                  className="text-brand-600 hover:underline"
-                >
-                  soporte@venxpos.com
-                </a>
-                . Su solicitud sera atendida en un plazo maximo de diez (10) dias
-                habiles, prorrogables por una sola vez por igual periodo conforme al
-                articulo 14 de la Ley 1581 de 2012.
-              </p>
-            </section>
-          </div>
+      <Section id="contacto" num="8" title="Contacto para el Ejercicio de Derechos">
+        <p className="text-sm text-slate-600 leading-relaxed mb-3">
+          Para ejercer sus derechos como titular, presentar consultas, quejas o solicitar
+          información sobre el tratamiento de sus datos personales, puede comunicarse a través
+          de los siguientes canales. Su solicitud será atendida en un plazo máximo de diez (10)
+          días hábiles, prorrogables por una sola vez por igual período conforme al artículo 14
+          de la Ley 1581 de 2012.
+        </p>
+        <div className="flex flex-wrap gap-3 mt-3">
+          <a
+            href={buildWhatsAppUrl('Hola, tengo una consulta sobre la política de privacidad de VenxPOS.')}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-green-600 text-white hover:bg-green-700 transition-colors"
+          >
+            <MessageCircle className="w-4 h-4" />
+            WhatsApp: {APP_CONFIG.whatsapp}
+          </a>
+          <a
+            href={`mailto:${APP_CONFIG.email}`}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
+          >
+            <Mail className="w-4 h-4" />
+            {APP_CONFIG.email}
+          </a>
         </div>
-      </div>
-    </div>
+      </Section>
+    </LegalLayout>
+  )
+}
+
+function Section({ id, num, title, children }: { id: string; num: string; title: string; children: React.ReactNode }) {
+  return (
+    <section id={id} className="py-5 border-t border-slate-100 first:border-t-0">
+      <h2 className="text-base font-semibold text-slate-900 mb-3">
+        {num}. {title}
+      </h2>
+      {children}
+    </section>
   )
 }

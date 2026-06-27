@@ -47,7 +47,9 @@ async function loadTenantData(userId: string) {
     .from('subscriptions')
     .select('*')
     .eq('tenant_id', tenant.id)
-    .eq('estado', 'active')
+    .in('estado', ['active', 'past_due'])
+    .order('fecha_renovacion', { ascending: false })
+    .limit(1)
     .maybeSingle()
 
   if (activeSub) {
@@ -168,7 +170,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   logout: async () => {
     try { await supabase.auth.signOut() } catch { /* ignore */ }
-    localStorage.removeItem('supabase.auth.token')
     localStorage.removeItem('sb-beacnoxukkoellhecofm-auth-token')
     set({ session: null, user: null, tenant: null, plan: null, subscription: null, isSuperadmin: false })
   },

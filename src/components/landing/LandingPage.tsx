@@ -1,9 +1,10 @@
 ﻿import { useEffect, useRef, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { buildWhatsAppUrl } from '@/lib/appConfig'
+import { buildWhatsAppUrl, APP_CONFIG } from '@/lib/appConfig'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import logoSaaS from '@/assets/branding/logo-saas.png'
+const posLink = APP_CONFIG.POS_WEB_URL
 import {
   Package,
   Shield,
@@ -18,6 +19,7 @@ import {
   AlertTriangle,
   FileSpreadsheet,
   DollarSign,
+  ExternalLink,
   TrendingUp,
   Layers,
   RefreshCw,
@@ -29,8 +31,14 @@ import {
   Tag,
   FileText,
   MessageCircle,
+  Monitor,
   Mail,
   MapPin,
+  Settings,
+  GraduationCap,
+  Sliders,
+  Zap,
+  HeartHandshake,
 } from 'lucide-react'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -102,44 +110,89 @@ const features = [
 const plans = [
   {
     name: 'Básico',
-    monthly: '$80.000',
-    setup: 'Pago único: $150.000',
+    badge: 'Ideal para pequeños negocios',
+    setup: '$1.490.000',
+    monthly: '$110.900',
     features: [
-      '2 sucursales',
-      '2 administradores',
+      'Implementación inicial',
+      'Configuración completa del sistema',
+      '1 sucursal incluida',
       'Hasta 1.000 productos',
-      'Reportes básicos',
-      'Soporte por email',
+      'Administradores incluidos según configuración',
+      'Soporte por WhatsApp',
+      'Atención Lunes a Viernes',
+      '7:00 AM a 7:00 PM',
     ],
     highlighted: false,
   },
   {
     name: 'Estándar',
-    monthly: '$150.000',
-    setup: 'Pago único: $250.000',
+    badge: 'Más vendido',
+    setup: '$1.690.000',
+    monthly: '$229.900',
     features: [
-      '5 sucursales',
-      '5 administradores',
+      'Implementación inicial',
+      'Configuración completa',
+      '4 sucursales incluidas',
       'Hasta 5.000 productos',
       'Reportes avanzados',
-      'Módulo de inventario',
-      'Soporte prioritario',
+      'Inventario avanzado',
+      'Soporte por WhatsApp',
+      'Atención Lunes a Viernes',
+      '7:00 AM a 7:00 PM',
     ],
     highlighted: true,
   },
   {
     name: 'Pro',
-    monthly: '$250.000',
-    setup: 'Pago único: $380.000',
+    badge: 'Empresas en crecimiento',
+    setup: '$1.990.000',
+    monthly: '$449.900',
     features: [
-      '10 sucursales',
-      '10 administradores',
-      'Sin límite de productos',
+      'Implementación completa',
+      'Configuración empresarial',
+      'Hasta 10 sucursales',
+      'Productos ilimitados',
       'Reportes personalizados',
-      'API de integración',
-      'Soporte 24/7',
+      'Analíticas avanzadas',
+      'Soporte por WhatsApp',
+      'Atención Lunes a Viernes',
+      '7:00 AM a 7:00 PM',
     ],
     highlighted: false,
+  },
+]
+
+const implementationBenefits = [
+  {
+    icon: Settings,
+    title: 'Configuración personalizada',
+    desc: 'Ajustamos VenxPOS a la operación de tu negocio, no al revés.',
+  },
+  {
+    icon: GraduationCap,
+    title: 'Capacitación inicial',
+    desc: 'Te enseñamos a usar el sistema para que saques el máximo provecho desde el día uno.',
+  },
+  {
+    icon: Sliders,
+    title: 'Parametrización',
+    desc: 'Configuramos impuestos, formas de pago, categorías y todo lo necesario.',
+  },
+  {
+    icon: Package,
+    title: 'Inventario',
+    desc: 'Cargamos tus productos iniciales para que empieces a vender de inmediato.',
+  },
+  {
+    icon: Zap,
+    title: 'Activación',
+    desc: 'Ponemos en marcha tu cuenta con todas las funcionalidades listas.',
+  },
+  {
+    icon: HeartHandshake,
+    title: 'Soporte inicial',
+    desc: 'Te acompañamos durante los primeros días para resolver cualquier duda.',
   },
 ]
 
@@ -157,22 +210,117 @@ const faqItems = [
   {
     question: '¿Qué métodos de pago aceptan?',
     answer:
-      'Para tu comodidad y seguridad, procesamos todos nuestros pagos a través de Wompi, lo que nos permite aceptar PSE, tarjetas (crédito/débito), Nequi y Daviplata, además de pagos en efectivo en puntos aliados. Tu tranquilidad es nuestra prioridad: todos los pagos generan una factura formal que te enviaremos para que puedas revisar y validar tu transacción en cualquier momento.',
+      'Procesamos todos nuestros pagos a través de Wompi, lo que nos permite aceptar PSE, tarjetas (crédito/débito), Nequi y Daviplata, además de transferencia bancaria y Bre-B. El método de pago puede variar según la negociación. Todos los pagos generan una factura electrónica formal.',
   },
   {
     question: '¿Mis datos están seguros?',
     answer:
-      'Absolutamente. Usamos cifrado AES-256, conexiones TLS y nuestra infraestructura está alojada en servidores con certificación SOC 2. Los datos se respaldan diariamente.',
+      'Absolutamente. Usamos cifrado AES-256, conexiones TLS 1.3, nuestra infraestructura está alojada en servidores AWS con certificación SOC 2 y las contraseñas se almacenan con hash bcrypt. Los datos se respaldan diariamente y contamos con control de acceso basado en roles.',
   },
   {
     question: '¿Cómo agrego más sucursales?',
     answer:
-      'Puedes añadir nuevas sucursales en cualquier momento desde tu panel de administración. El número de sucursales habilitadas dependerá de las condiciones de tu plan actual. Para verificar cuántas tienes disponibles o realizar una ampliación, revisa el detalle de tu suscripción o escríbenos a nuestro equipo de soporte por WhatsApp para recibir asesoría personalizada.',
+      'Puedes añadir nuevas sucursales en cualquier momento desde tu panel de administración. El número de sucursales habilitadas dependerá de las condiciones de tu plan actual. Para verificar cuántas tienes disponibles o realizar una ampliación, revisa el detalle de tu suscripción o escríbenos a nuestro equipo de soporte por WhatsApp.',
   },
   {
     question: '¿Tienen soporte técnico?',
     answer:
-      'Sí. Contamos con un equipo de soporte técnico disponible para todos nuestros clientes de lunes a viernes, entre las 7:00 a.m. y las 7:00 p.m. Ten en cuenta que este servicio no opera durante fines de semana ni días festivos. Si tienes alguna consulta fuera de este horario, puedes dejarnos tu mensaje y te responderemos a la mayor brevedad posible al iniciar nuestra jornada.',
+      'Sí. Contamos con un equipo de soporte técnico disponible de lunes a viernes, entre las 7:00 a.m. y las 7:00 p.m. Ten en cuenta que este servicio no opera durante fines de semana ni días festivos. Si tienes alguna consulta fuera de este horario, puedes dejarnos tu mensaje y te responderemos a la brevedad posible al iniciar nuestra jornada.',
+  },
+  {
+    question: '¿Cómo adquiero VenxPOS?',
+    answer:
+      'Para adquirir VenxPOS, debes comunicarte con nuestro equipo de ventas a través de WhatsApp. La Gerencia creará tu cuenta y te proporcionará las credenciales de acceso. No existe registro público ni autogestionado. Todo el proceso es personalizado para garantizar que el sistema se ajuste a las necesidades de tu negocio.',
+  },
+  {
+    question: '¿Cómo solicito una cotización?',
+    answer:
+      'Puedes solicitar una cotización personalizada a través del botón "Cotizar Ahora" en nuestro sitio web o contactándonos directamente por WhatsApp. Te enviaremos una propuesta detallada con los planes disponibles, costos de implementación y mensualidades según las necesidades de tu negocio.',
+  },
+  {
+    question: '¿Qué incluye el pago inicial?',
+    answer:
+      'El pago inicial cubre la implementación completa del sistema: configuración técnica de tu cuenta, parametrización del sistema según tu negocio, carga de productos iniciales, activación del tenant en la nube y capacitación inicial. Este pago no es reembolsable una vez iniciado el proceso de implementación.',
+  },
+  {
+    question: '¿Qué incluye la mensualidad?',
+    answer:
+      'La mensualidad incluye el acceso completo a todas las funcionalidades del plan contratado, almacenamiento en la nube, soporte técnico, actualizaciones del sistema, facturación electrónica y respaldo diario de datos. No incluye costos de implementación, configuraciones adicionales ni servicios no contemplados en el plan.',
+  },
+  {
+    question: '¿Cómo solicito una renovación?',
+    answer:
+      'Las renovaciones se gestionan mediante solicitud a través de WhatsApp. Una vez procesado el pago, tu suscripción se extiende por un período adicional de 30 días calendario. Te recomendamos solicitar la renovación antes de la fecha de vencimiento para evitar interrupciones en el servicio.',
+  },
+  {
+    question: '¿Qué pasa si no pago?',
+    answer:
+      'Si no realizas el pago de tu suscripción dentro del período establecido, el servicio será suspendido. Recibirás una notificación con al menos 5 días de anticipación. Una vez regularizado el pago, el servicio se restablecerá en un plazo máximo de 24 horas. Tus datos se conservan durante 90 días después de la cancelación.',
+  },
+  {
+    question: '¿Qué sucede si olvido mi contraseña?',
+    answer:
+      'Si olvidas tu contraseña, puedes solicitar un restablecimiento a través de la opción "¿Olvidaste tu contraseña?" en la página de inicio de sesión. También puedes contactar a la Gerencia por WhatsApp para que te asignen una nueva contraseña temporal.',
+  },
+  {
+    question: '¿Cómo descargo mis facturas?',
+    answer:
+      'Puedes descargar tus facturas desde la sección "Facturación" en tu panel de administración. Todas las facturas están disponibles en formato PDF y cumplen con los requisitos de facturación electrónica de la DIAN. También recibirás una copia por correo electrónico.',
+  },
+  {
+    question: '¿Cómo contacto soporte?',
+    answer:
+      'Puedes contactar a nuestro equipo de soporte a través de WhatsApp al 3228372341 o por correo electrónico a juan.dev1809@gmail.com. El horario de atención es de lunes a viernes de 7:00 a.m. a 7:00 p.m. Las consultas recibidas fuera de este horario serán respondidas al inicio de la siguiente jornada laboral.',
+  },
+  {
+    question: '¿Cuántas sucursales puedo crear?',
+    answer:
+      'El número de sucursales depende del plan contratado. El Plan Básico incluye 1 sucursal, el Plan Estándar hasta 4 sucursales y el Plan Pro hasta 10 sucursales. Si necesitas más sucursales, puedes contactarnos para evaluar una solución personalizada.',
+  },
+  {
+    question: '¿Existe límite de productos?',
+    answer:
+      'El límite de productos varía según el plan. El Plan Básico incluye hasta 1,000 productos, el Plan Estándar hasta 5,000 productos y el Plan Pro no tiene límite de productos. Todos los planes permiten gestionar el inventario en tiempo real.',
+  },
+  {
+    question: '¿Dónde puedo ver mi suscripción?',
+    answer:
+      'Puedes ver todos los detalles de tu suscripción en la sección "Mi Suscripción" del panel de administración. Allí encontrarás información sobre tu plan actual, fecha de vencimiento, histórico de pagos y opciones para cambiar de plan o cancelar la suscripción.',
+  },
+  {
+    question: '¿Cómo funciona el inventario?',
+    answer:
+      'El inventario de VenxPOS se actualiza en tiempo real. Cada venta descuenta automáticamente el stock, puedes configurar alertas de mínimo inventario, transferir productos entre sucursales y consultar el historial de movimientos. También puedes importar y exportar productos mediante archivos.',
+  },
+  {
+    question: '¿Puedo importar o exportar productos?',
+    answer:
+      'Sí. VenxPOS permite importar productos desde archivos CSV o Excel para facilitar la carga inicial de tu inventario. También puedes exportar tu catálogo de productos en varios formatos para respaldo o análisis externo.',
+  },
+  {
+    question: '¿Cómo se sincroniza con el POS?',
+    answer:
+      'El Sistema POS y el Panel Administrativo (SaaS) comparten la misma base de datos, por lo que la sincronización es automática e instantánea. Las ventas registradas en el POS se reflejan de inmediato en el inventario, reportes y analíticas del panel administrativo.',
+  },
+  {
+    question: '¿Qué navegadores son compatibles?',
+    answer:
+      'VenxPOS es compatible con las versiones modernas de Google Chrome, Mozilla Firefox, Microsoft Edge y Safari. Recomendamos utilizar la versión más reciente de tu navegador preferido para garantizar el mejor rendimiento y la experiencia óptima.',
+  },
+  {
+    question: '¿Qué tecnologías utiliza VenxPOS?',
+    answer:
+      'VenxPOS está construido con tecnologías modernas: React, TypeScript, TailwindCSS, Supabase para base de datos y autenticación, Wompi para procesamiento de pagos y está alojado en infraestructura AWS. El Sistema POS es una aplicación web independiente accesible desde cualquier navegador.',
+  },
+  {
+    question: '¿Qué ocurre si cancelo mi suscripción? ¿Puedo volver después?',
+    answer:
+      'Si cancelas tu suscripción, mantienes acceso completo hasta el final del ciclo de facturación pagado. Tus datos se conservan por 90 días después de la cancelación, tiempo durante el cual puedes reactivar tu cuenta sin pérdida de información. Transcurrido ese plazo, los datos se eliminan irreversiblemente. Si deseas volver después, puedes contactarnos para crear una nueva cuenta.',
+  },
+  {
+    question: '¿Qué pasa cuando mi plan vence?',
+    answer:
+      'Cuando tu plan vence, el servicio se suspende automáticamente. Recibirás notificaciones antes del vencimiento para que puedas renovar a tiempo. Durante los primeros días después del vencimiento, tus datos permanecen intactos y puedes reactivar el servicio contactando a la Gerencia por WhatsApp.',
   },
 ]
 
@@ -235,6 +383,16 @@ function Navbar() {
                 {link.label}
               </button>
             ))}
+            <a
+              href={posLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm font-medium text-slate-600 transition-colors hover:text-brand-600 inline-flex items-center gap-1.5"
+            >
+              <Monitor className="w-4 h-4" />
+              Sistema POS
+              <ExternalLink className="w-3 h-3" />
+            </a>
           </div>
 
           <div className="hidden md:flex items-center gap-3">
@@ -275,6 +433,17 @@ function Navbar() {
                   {link.label}
                 </button>
               ))}
+              <a
+                href={posLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-brand-600"
+                onClick={() => setMobileOpen(false)}
+              >
+                <Monitor className="w-4 h-4" />
+                Sistema POS
+                <ExternalLink className="w-3 h-3" />
+              </a>
               <div className="mt-2 flex flex-col gap-2 px-3">
                 <Link
                   to="/login"
@@ -682,6 +851,16 @@ export function LandingPage() {
                 Cotizar Ahora
                 <ArrowRight size={18} />
               </a>
+              <a
+                href={posLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-7 py-3.5 text-base font-medium text-slate-700 transition-all hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98]"
+              >
+                <Monitor className="w-5 h-5" />
+                Acceder al Sistema POS
+                <ExternalLink className="w-4 h-4" />
+              </a>
             </div>
           </div>
 
@@ -1009,37 +1188,87 @@ export function LandingPage() {
                   </span>
                 )}
 
-                <div className="mb-5">
+                <div className="mb-4">
                   <h3 className="text-lg font-semibold text-slate-900">
                     {plan.name}
                   </h3>
+                  {plan.badge && (
+                    <span className="mt-1 inline-block rounded-full bg-brand-50 px-3 py-0.5 text-[11px] font-medium text-brand-700">
+                      {plan.badge}
+                    </span>
+                  )}
                 </div>
 
-                <div className="mb-5">
+                <div className="mb-2">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Implementación inicial</span>
+                  <div className="mt-0.5 text-2xl font-bold text-slate-900">
+                    {plan.setup}
+                  </div>
+                  <p className="mt-0.5 text-[11px] text-slate-400 leading-relaxed">
+                    Incluye toda la configuración técnica y puesta en marcha necesaria para comenzar a operar con VenxPOS.
+                  </p>
+                </div>
+
+                <div className="my-4 border-t border-slate-100 pt-4">
                   <div className="flex items-baseline gap-1">
-                    <span className="text-3xl font-bold text-slate-900">
+                    <span className="text-xl font-bold text-slate-900">
                       {plan.monthly}
                     </span>
                     <span className="text-sm text-slate-400">/mes</span>
                   </div>
-                  <p className="mt-1.5 text-xs font-medium text-slate-400">
-                    {plan.setup}
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    A partir del siguiente periodo únicamente pagarás la mensualidad
                   </p>
                 </div>
 
-                <ul className="mb-8 flex-1 space-y-3">
+                <ul className="mb-6 flex-1 space-y-2.5">
                   {plan.features.map((feat, i) => (
                     <li key={i} className="flex items-start gap-3">
                       <Check
-                        size={16}
+                        size={15}
                         className="mt-0.5 shrink-0 text-brand-600"
                       />
                       <span className="text-sm text-slate-600">{feat}</span>
                     </li>
                   ))}
                 </ul>
+
+                <a
+                  href={buildWhatsAppUrl(`Hola, quiero contratar el plan ${plan.name} de VenxPOS.`)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`block w-full text-center rounded-xl py-2.5 text-sm font-semibold transition-all ${
+                    plan.highlighted
+                      ? 'bg-brand-600 text-white hover:bg-brand-700 shadow-sm'
+                      : 'border border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'
+                  }`}
+                >
+                  Lo quiero
+                </a>
               </div>
             ))}
+          </div>
+
+          {/* Why implementation fee */}
+          <div className="mt-20 mx-auto max-w-4xl">
+            <div className="text-center mb-10">
+              <h3 className="text-2xl font-bold text-slate-900">¿Por qué existe un pago de implementación?</h3>
+              <p className="mt-2 text-sm text-slate-500">No solo activas un software. Te entregamos un negocio listo para operar.</p>
+            </div>
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {implementationBenefits.map((ben, i) => {
+                const Icon = ben.icon
+                return (
+                  <div key={i} className="rounded-xl border border-slate-100 bg-white p-5 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
+                      <Icon size={20} />
+                    </div>
+                    <h4 className="text-sm font-semibold text-slate-900">{ben.title}</h4>
+                    <p className="mt-1 text-xs text-slate-500 leading-relaxed">{ben.desc}</p>
+                  </div>
+                )
+              })}
+            </div>
           </div>
         </div>
       </section>
@@ -1111,7 +1340,7 @@ export function LandingPage() {
       {/* ================================================================= */}
       <footer className="relative bg-slate-50/80 border-t border-slate-200">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-16 pb-8 lg:pt-20">
-          <div className="grid grid-cols-2 gap-10 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-10 lg:grid-cols-5">
             {/* Col 1 - Brand */}
             <div className="col-span-2 lg:col-span-1 space-y-4">
               <img src={logoSaaS} alt="VenxPOS" className="h-8 w-auto" />
@@ -1119,18 +1348,21 @@ export function LandingPage() {
                 Software POS multi-sucursal para el comercio colombiano.
               </p>
               <p className="text-xs text-slate-400">
-                Desarrollado por <span className="font-medium text-slate-600">JGSoftworks</span>
+                Desarrollado por <a href="https://jgsoftworks-site.netlify.app/" target="_blank" rel="noopener noreferrer" className="font-medium text-slate-600 hover:text-brand-600 transition-colors">JGSoftworks</a>
               </p>
             </div>
 
-            {/* Col 2 - Producto */}
+            {/* Col 2 - Legal */}
             <div>
-              <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wider mb-4">Producto</h3>
+              <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wider mb-4">Legal</h3>
               <ul className="space-y-3">
-                <li><a href="#features" className="text-sm text-slate-500 hover:text-slate-800 transition-colors">Caracteristicas</a></li>
-                <li><a href="#pricing" className="text-sm text-slate-500 hover:text-slate-800 transition-colors">Planes</a></li>
-                <li><a href="#faq" className="text-sm text-slate-500 hover:text-slate-800 transition-colors">Preguntas frecuentes</a></li>
-                <li><Link to="/legal/terminos" className="text-sm text-slate-500 hover:text-slate-800 transition-colors">Terminos</Link></li>
+                <li><Link to="/legal/terminos" className="text-sm text-slate-500 hover:text-slate-800 transition-colors">Términos y Condiciones</Link></li>
+                <li><Link to="/legal/privacidad" className="text-sm text-slate-500 hover:text-slate-800 transition-colors">Política de Privacidad</Link></li>
+                <li><Link to="/legal/cookies" className="text-sm text-slate-500 hover:text-slate-800 transition-colors">Política de Cookies</Link></li>
+                <li><Link to="/legal/reembolsos" className="text-sm text-slate-500 hover:text-slate-800 transition-colors">Política de Reembolsos</Link></li>
+                <li><Link to="/legal/conducta-aceptable" className="text-sm text-slate-500 hover:text-slate-800 transition-colors">Conducta Aceptable</Link></li>
+                <li><Link to="/legal/cumplimiento" className="text-sm text-slate-500 hover:text-slate-800 transition-colors">Cumplimiento Normativo</Link></li>
+                <li><Link to="/legal/metodos-pago" className="text-sm text-slate-500 hover:text-slate-800 transition-colors">Métodos de Pago</Link></li>
               </ul>
             </div>
 
@@ -1150,14 +1382,20 @@ export function LandingPage() {
                     juan.dev1809@gmail.com
                   </a>
                 </li>
-                <li className="text-sm text-slate-500 flex items-center gap-2">
-                  <MapPin size={14} className="text-slate-400" />
-                  KR 39 #13-42, Bogota
-                </li>
+
               </ul>
             </div>
 
-            {/* Col 4 - Acciones */}
+            {/* Col 4 - Plataformas */}
+            <div>
+              <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wider mb-4">Plataformas</h3>
+              <ul className="space-y-3">
+                <li><Link to="/login" className="text-sm text-slate-500 hover:text-slate-800 transition-colors">Panel Administrativo</Link></li>
+                <li><a href={posLink} target="_blank" rel="noopener noreferrer" className="text-sm text-slate-500 hover:text-slate-800 transition-colors inline-flex items-center gap-1.5">Sistema POS <ExternalLink size={12} /></a></li>
+              </ul>
+            </div>
+
+            {/* Col 5 - Acciones */}
             <div>
               <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wider mb-4">Acciones</h3>
               <ul className="space-y-3">
@@ -1173,8 +1411,10 @@ export function LandingPage() {
             <p className="text-xs text-slate-400">&copy; {new Date().getFullYear()} VenxPOS. Todos los derechos reservados.</p>
             <div className="flex gap-4">
               <Link to="/legal/privacidad" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">Privacidad</Link>
-              <Link to="/legal/terminos" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">Terminos</Link>
+              <Link to="/legal/terminos" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">Términos</Link>
               <Link to="/legal/cookies" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">Cookies</Link>
+              <Link to="/legal/reembolsos" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">Reembolsos</Link>
+              <Link to="/legal/metodos-pago" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">Métodos de Pago</Link>
             </div>
           </div>
         </div>

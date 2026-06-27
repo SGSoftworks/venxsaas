@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Navigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase/client'
 import { useAuthStore } from '@/store/useAuthStore'
 import { Loader2, Lock, Eye, EyeOff } from 'lucide-react'
@@ -35,8 +35,7 @@ export function ChangePasswordPage() {
   }
 
   if (!session) {
-    navigate('/login', { replace: true })
-    return null
+    return <Navigate to="/login" replace />
   }
 
   return (

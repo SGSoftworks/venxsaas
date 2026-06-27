@@ -1,8 +1,8 @@
 import { type ReactNode } from 'react'
-import { Navigate, useLocation } from 'react-router-dom'
+import { Link, Navigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '@/store/useAuthStore'
 import { buildWhatsAppUrl, APP_CONFIG } from '@/lib/appConfig'
-import { Loader2, AlertCircle, Ban, Clock, MessageCircle, Mail } from 'lucide-react'
+import { Loader2, AlertCircle, Ban, Clock, MessageCircle, Mail, ExternalLink, ArrowLeft, Monitor } from 'lucide-react'
 import iconApp from '@/assets/branding/icon-app.png'
 
 function FullScreenLoader() {
@@ -87,6 +87,58 @@ function StatusMessage({ estado }: { estado: string }) {
 
 function NoAccessMessage({ isPOSUser }: { isPOSUser: boolean }) {
   const { logout } = useAuthStore()
+
+  const goToPOS = () => {
+    logout()
+    window.open(APP_CONFIG.POS_WEB_URL, '_blank', 'noopener,noreferrer')
+  }
+
+  if (isPOSUser) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-slate-50 p-4">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 max-w-md w-full text-center animate-scale-in">
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-14 h-14 bg-brand-100 rounded-2xl flex items-center justify-center">
+              <Monitor className="w-7 h-7 text-brand-600" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-slate-900">Esta cuenta pertenece al Sistema POS</h2>
+              <p className="text-sm text-slate-500 mt-3 leading-relaxed">
+                La cuenta con la que intentas iniciar sesión está registrada para utilizar el Sistema POS de VenxPOS.
+              </p>
+              <p className="text-sm text-slate-500 mt-3 leading-relaxed">
+                El Panel Administrativo (SaaS) y el Sistema POS son plataformas diferentes, aunque comparten la misma información del negocio.
+              </p>
+              <p className="text-sm text-slate-500 mt-3 leading-relaxed">
+                Si deseas registrar ventas, administrar caja, inventario y operar tu punto de venta, ingresa directamente al Sistema POS.
+              </p>
+              <p className="text-sm text-slate-500 mt-3 leading-relaxed">
+                Si crees que se trata de un error, comunícate con la Gerencia de VenxPOS.
+              </p>
+            </div>
+            <div className="flex flex-col w-full gap-2 mt-2">
+              <button
+                onClick={goToPOS}
+                className="w-full inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-brand-600 text-white rounded-lg font-semibold text-sm hover:bg-brand-700 transition-colors"
+              >
+                <Monitor className="w-4 h-4" />
+                Ir al Sistema POS
+                <ExternalLink className="w-4 h-4" />
+              </button>
+              <Link
+                to="/"
+                className="w-full inline-flex items-center justify-center gap-2 px-6 py-2.5 border border-slate-200 text-slate-600 rounded-lg font-medium text-sm hover:bg-slate-50 transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Volver al inicio
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex h-screen w-full items-center justify-center bg-slate-50 p-4">
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 max-w-md w-full text-center animate-scale-in">
@@ -95,13 +147,9 @@ function NoAccessMessage({ isPOSUser }: { isPOSUser: boolean }) {
             <AlertCircle className="w-7 h-7 text-amber-600" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-slate-900">
-              {isPOSUser ? 'Esta cuenta es solo para POS' : 'Sin acceso'}
-            </h2>
+            <h2 className="text-lg font-bold text-slate-900">Sin acceso</h2>
             <p className="text-sm text-slate-500 mt-2">
-              {isPOSUser
-                ? 'Esta cuenta solo tiene acceso al sistema POS de escritorio. Para acceder al panel SaaS, registra tu negocio primero.'
-                : 'No tienes acceso al panel SaaS. Si crees que esto es un error, contacta a soporte.'}
+              No tienes acceso al panel SaaS. Si crees que esto es un error, contacta a soporte.
             </p>
           </div>
           <button
@@ -117,7 +165,7 @@ function NoAccessMessage({ isPOSUser }: { isPOSUser: boolean }) {
 }
 
 export function AuthGuard({ children }: { children: ReactNode }) {
-  const { session, tenant, isSuperadmin, loading, initialized } = useAuthStore()
+  const { session, tenant, subscription, isSuperadmin, loading, initialized } = useAuthStore()
   const location = useLocation()
 
   if (!initialized || loading) return <FullScreenLoader />
@@ -127,6 +175,8 @@ export function AuthGuard({ children }: { children: ReactNode }) {
   if (tenant?.estado === 'suspended') return <StatusMessage estado="suspended" />
   if (tenant?.estado === 'cancelled') return <StatusMessage estado="cancelled" />
   if (tenant?.estado === 'pending_approval') return <StatusMessage estado="pending_approval" />
+
+  if (subscription?.estado === 'expired') return <StatusMessage estado="suspended" />
 
   return <>{children}</>
 }

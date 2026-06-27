@@ -179,12 +179,15 @@ export function AdminClients() {
         { data: subscription },
         { data: payments },
         { data: branches },
+        { data: allPlansData },
       ] = await Promise.all([
         client.plan_id ? supabase.from('plans').select('*').eq('id', client.plan_id).maybeSingle() : Promise.resolve({ data: null }),
         supabase.from('subscriptions').select('*').eq('tenant_id', client.id).maybeSingle(),
         supabase.from('payments').select('*').eq('tenant_id', client.id).order('created_at', { ascending: false }).limit(20),
         supabase.from('branch_accounts').select('*').eq('tenant_id', client.id).order('created_at', { ascending: false }).limit(50),
+        supabase.from('plans').select('*').eq('activo', true).order('precio_mensual', { ascending: true }),
       ])
+      if (allPlansData) setAllPlans(allPlansData as Plan[])
       setDetailOpen({
         tenant: client,
         plan: plan as Plan | null,
@@ -209,7 +212,7 @@ export function AdminClients() {
         .insert({
           tenant_id: detailOpen.tenant.id,
           wompi_transaction_id: invoiceForm.transaccionId || null,
-          wompi_reference: invoiceForm.referencia || invoiceForm.factura || null,
+          wompi_reference: invoiceForm.referencia || invoiceForm.factura || `VENX-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
           amount,
           currency: 'COP',
           status: 'approved',

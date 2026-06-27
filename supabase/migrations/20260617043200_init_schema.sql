@@ -67,7 +67,7 @@ CREATE TABLE productos (
     costo               DECIMAL(12,2) NOT NULL CHECK (costo >= 0),
     requiere_peso       BOOLEAN NOT NULL DEFAULT false,
     tarifa_iva          DECIMAL(5,3) NOT NULL DEFAULT 0.19 CHECK (tarifa_iva IN (0, 0.05, 0.19)),
-    tarifa_impoconsumo  DECIMAL(5,3) NOT NULL DEFAULT 0 CHECK (tarifa_impoconsumo IN (0, 0.08)),
+    tarifa_impoconsumo  DECIMAL(5,4) NOT NULL DEFAULT 0 CHECK (tarifa_impoconsumo IN (0, 0.08, 0.16)),
     activo              BOOLEAN NOT NULL DEFAULT true,
     categoria_id        UUID REFERENCES categorias(id) ON DELETE SET NULL,
     created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),

@@ -109,24 +109,15 @@ function StockAdjustmentModal({
     setLoading(true)
     setError('')
     try {
-      const delta = tipo === 'entrada' ? qty : tipo === 'salida' ? -qty : qty - currentStock
-      const stockResultante = Math.max(0, currentStock + delta)
-
-      const { data, error: rpcError } = await supabase.rpc('adjust_tenant_product_stock', {
+      const { error: rpcError } = await supabase.rpc('adjust_tenant_product_stock', {
         p_tenant_id: tenantId,
         p_producto_id: productId,
-        p_sucursal_id: sucursalId,
         p_tipo: tipo,
         p_cantidad: qty,
-        p_delta: delta,
-        p_stock_resultante: stockResultante,
         p_observacion: observacion || `${tipo} manual`,
       })
 
       if (rpcError) throw rpcError
-      if (data === false || data?.error) {
-        throw new Error(typeof data === 'object' && data?.error ? data.error : 'Error desconocido')
-      }
 
       onSuccess()
     } catch (e) {
@@ -687,7 +678,7 @@ export function InventoryPage() {
     }
 
     if (filter === 'stock_bajo') {
-      result = result.filter((p) => p.stock_actual > 0 && p.stock_actual <= p.stock_minimo)
+      result = result.filter((p) => p.stock_actual >= 0 && p.stock_actual <= p.stock_minimo)
     } else if (filter === 'inactivos') {
       result = result.filter((p) => !p.activo)
     }
@@ -1195,7 +1186,7 @@ export function InventoryPage() {
                       key={p.id}
                       className={classNames(
                         'transition-colors',
-                        p.stock_actual > 0 && p.stock_actual <= p.stock_minimo
+                        p.stock_actual >= 0 && p.stock_actual <= p.stock_minimo
                           ? 'bg-amber-50/60 hover:bg-amber-50'
                           : 'hover:bg-slate-50/50'
                       )}

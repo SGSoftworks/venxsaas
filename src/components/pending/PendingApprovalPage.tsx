@@ -1,18 +1,16 @@
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/useAuthStore'
-import { Clock, MessageCircle, Mail, Upload } from 'lucide-react'
+import { Clock, MessageCircle, Mail } from 'lucide-react'
 import { buildWhatsAppUrl, APP_CONFIG } from '@/lib/appConfig'
 
 export function PendingApprovalPage() {
   const navigate = useNavigate()
-  const { logout, session, tenant } = useAuthStore()
+  const { logout } = useAuthStore()
 
   const handleLogout = () => {
     logout()
     navigate('/login', { replace: true })
   }
-
-  const showProofLink = session && tenant?.estado === 'pending_approval'
 
   return (
     <div className="flex h-screen w-full items-center justify-center bg-slate-50 p-4">
@@ -33,16 +31,6 @@ export function PendingApprovalPage() {
           >
             Cerrar sesion
           </button>
-
-          {showProofLink && (
-            <Link
-              to="/dashboard/comprobantes"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-medium bg-brand-600 text-white hover:bg-brand-700 transition-colors"
-            >
-              <Upload className="w-3.5 h-3.5" />
-              Subir comprobante de pago
-            </Link>
-          )}
 
           <div className="flex items-center gap-3 mt-4 pt-4 border-t border-slate-100">
             <a

@@ -32,8 +32,8 @@ export function buildEmailHtml(title: string, bodyHtml: string): string {
       ${bodyHtml}
     </div>
     <div class="footer">
-      <p>VenxPOS SaaS — Desarrollado por JGSoftworks</p>
-      <p><a href="https://venxpos.com">www.venxpos.com</a> | <a href="mailto:soporte@venxpos.com">soporte@venxpos.com</a></p>
+      <p>VenxPOS SaaS — Desarrollado por <a href="https://jgsoftworks-site.netlify.app/" target="_blank" rel="noopener noreferrer" style="color:#6D3CF5;text-decoration:underline;">JGSoftworks</a></p>
+      <p><a href="https://venxpos.com">www.venxpos.com</a> | <a href="mailto:juan.dev1809@gmail.com">juan.dev1809@gmail.com</a> | WhatsApp: 3228372341</p>
     </div>
   </div>
 </body>

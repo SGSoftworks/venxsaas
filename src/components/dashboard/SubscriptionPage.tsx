@@ -15,7 +15,6 @@ import {
   Receipt,
   FileText,
   Calendar,
-  ArrowUpRight,
   Shield,
   Search,
   Download,
@@ -24,7 +23,6 @@ import {
   DollarSign,
   Printer,
   MessageCircle,
-  Mail,
   RefreshCw,
   Clock,
   Send,
@@ -1000,13 +998,7 @@ export function SubscriptionPage() {
             <MessageCircle className="w-3.5 h-3.5" />
             WhatsApp
           </a>
-          <a
-            href={`mailto:${APP_CONFIG.email}`}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
-          >
-            <Mail className="w-3.5 h-3.5" />
-            Email
-          </a>
+
         </div>
       </div>
     </div>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/useAuthStore'
 import { useUIStore } from '@/store/useUIStore'
 import { AuthGuard } from '@/components/auth/AuthGuard'
@@ -35,6 +35,7 @@ import { CookiesPage } from '@/components/legal/CookiesPage'
 import { ReembolsosPage } from '@/components/legal/ReembolsosPage'
 import { AceptableUsePage } from '@/components/legal/AceptableUsePage'
 import { CumplimientoPage } from '@/components/legal/CumplimientoPage'
+import { MetodosPagoPage } from '@/components/legal/MetodosPagoPage'
 import { NotFoundPage } from '@/components/error/NotFoundPage'
 import { ForbiddenPage } from '@/components/error/ForbiddenPage'
 import { ServerErrorPage } from '@/components/error/ServerErrorPage'
@@ -94,6 +95,8 @@ export default function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/cambiar-contrasena" element={<ChangePasswordPage />} />
+        <Route path="/pago" element={<PaymentPage />} />
+        <Route path="/registro" element={<Navigate to="/" replace />} />
 
         <Route path="/checkout/pay/:reference" element={<CheckoutPage />} />
         <Route path="/payment/success/:reference" element={<PaymentSuccess />} />
@@ -107,6 +110,7 @@ export default function App() {
         <Route path="/legal/reembolsos" element={<ReembolsosPage />} />
         <Route path="/legal/conducta-aceptable" element={<AceptableUsePage />} />
         <Route path="/legal/cumplimiento" element={<CumplimientoPage />} />
+        <Route path="/legal/metodos-pago" element={<MetodosPagoPage />} />
 
         <Route path="/dashboard" element={
           <AuthGuard><DashboardLayout /></AuthGuard>

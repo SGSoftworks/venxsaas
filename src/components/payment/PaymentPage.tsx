@@ -304,8 +304,16 @@ export function PaymentPage() {
                   </div>
                   <hr className="border-slate-100" />
                   <div className="space-y-1.5">
-                    <div className="flex items-center justify-between"><span className="text-sm text-slate-600">Pago inicial</span><span className="text-sm font-bold text-slate-900">{formatCurrency(initialAmount)}</span></div>
-                    <div className="flex items-center justify-between"><span className="text-sm text-slate-500">Precio mensual</span><span className="text-sm text-slate-500">{formatCurrency(plan.precio_mensual)}/mes</span></div>
+                    <div className="space-y-1.5">
+                      <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Implementación inicial</span>
+                      <div className="flex items-center justify-between"><span className="text-sm text-slate-600">Subtotal</span><span className="text-sm text-slate-900">{formatCurrency(Math.round(initialAmount / 1.19))}</span></div>
+                      <div className="flex items-center justify-between"><span className="text-sm text-slate-600">IVA (19%)</span><span className="text-sm text-slate-900">{formatCurrency(initialAmount - Math.round(initialAmount / 1.19))}</span></div>
+                      <hr className="border-slate-100" />
+                      <div className="flex items-center justify-between"><span className="text-sm font-semibold text-slate-800">Total</span><span className="text-sm font-bold text-brand-600">{formatCurrency(initialAmount)}</span></div>
+                    </div>
+                    <p className="text-[11px] text-slate-400 mt-2">A partir del siguiente periodo únicamente pagarás la mensualidad correspondiente a tu plan.</p>
+                    <hr className="border-slate-100 my-2" />
+                    <div className="flex items-center justify-between"><span className="text-sm text-slate-600">Mensualidad posterior</span><span className="text-sm text-slate-500">{formatCurrency(plan.precio_mensual)}/mes</span></div>
                   </div>
                   <div className="flex items-center gap-2 text-xs text-slate-400 pt-1"><Shield className="w-3.5 h-3.5" /><span>Pago seguro procesado por Wompi</span></div>
                 </div>

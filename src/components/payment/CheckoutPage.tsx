@@ -151,10 +151,10 @@ export function CheckoutPage() {
                   Ya pague
                 </button>
                 <Link
-                  to="/registro"
+                  to="/"
                   className="w-full px-4 py-2.5 border border-slate-200 text-slate-600 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors"
                 >
-                  Cancelar
+                  Ir al inicio
                 </Link>
               </div>
             </div>
@@ -176,11 +176,11 @@ export function CheckoutPage() {
               <h2 className="text-lg font-semibold text-slate-800">El pago ha expirado</h2>
               <p className="text-sm text-slate-500">El tiempo para completar el pago ha vencido.</p>
               <Link
-                to="/registro"
+                to="/"
                 className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 text-white text-sm font-medium rounded-lg hover:bg-brand-700 transition-colors"
               >
                 <ArrowLeft className="w-4 h-4" />
-                Intentar de nuevo
+                Ir al inicio
               </Link>
             </div>
           )}
@@ -191,11 +191,11 @@ export function CheckoutPage() {
               <h2 className="text-lg font-semibold text-slate-800">Error al verificar el pago</h2>
               <p className="text-sm text-slate-500">{errorMsg || 'Ocurrio un error inesperado.'}</p>
               <Link
-                to="/registro"
+                to="/"
                 className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 text-white text-sm font-medium rounded-lg hover:bg-brand-700 transition-colors"
               >
                 <ArrowLeft className="w-4 h-4" />
-                Intentar de nuevo
+                Ir al inicio
               </Link>
             </div>
           )}

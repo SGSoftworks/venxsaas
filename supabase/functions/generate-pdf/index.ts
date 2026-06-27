@@ -63,13 +63,55 @@ serve(async (req) => {
       .eq('tenant_id', tenant.id)
     console.log('[generate-pdf] Sucursales count:', sucursalesCount)
 
-    console.log('[generate-pdf] Fetching payment method...')
+    console.log('[generate-pdf] Fetching payment...')
     const { data: payment } = await supabaseAdmin
       .from('payments')
-      .select('payment_method_type')
+      .select('payment_method_type, tipo, wompi_reference')
       .eq('id', factura.payment_id)
       .maybeSingle()
-    console.log('[generate-pdf] Payment method:', payment?.payment_method_type || 'MANUAL')
+    console.log('[generate-pdf] Payment:', payment?.payment_method_type || 'MANUAL', 'tipo:', payment?.tipo || '—')
+
+    console.log('[generate-pdf] Fetching subscription...')
+    const { data: subscription } = await supabaseAdmin
+      .from('subscriptions')
+      .select('proximo_cobro, fecha_renovacion, fecha_inicio, estado')
+      .eq('tenant_id', tenant.id)
+      .maybeSingle()
+    console.log('[generate-pdf] Subscription:', subscription?.proximo_cobro || '—', 'estado:', subscription?.estado || '—')
+
+    const paymentTipo = payment?.tipo || ''
+    let invoiceTipo: 'activacion' | 'renovacion' | 'cambio_plan' | 'otro' = 'otro'
+    if (paymentTipo === 'initial') {
+      invoiceTipo = 'activacion'
+    } else if (paymentTipo === 'recurring' || paymentTipo === 'renewal') {
+      invoiceTipo = 'renovacion'
+    } else if (paymentTipo === 'plan_change') {
+      invoiceTipo = 'cambio_plan'
+    }
+
+    let oldPlanNombre: string | null = null
+    if (invoiceTipo === 'cambio_plan') {
+      console.log('[generate-pdf] Fetching subscription_events for old plan name...')
+      const { data: lastEvent } = await supabaseAdmin
+        .from('subscription_events')
+        .select('metadata')
+        .eq('tenant_id', tenant.id)
+        .eq('tipo', 'plan_changed')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      if (lastEvent?.metadata) {
+        const meta = lastEvent.metadata as Record<string, unknown>
+        oldPlanNombre = (meta.old_plan_name as string) || null
+        console.log('[generate-pdf] Old plan name:', oldPlanNombre)
+      }
+    }
+
+    const proximoPago = subscription?.proximo_cobro || subscription?.fecha_renovacion || null
+    const fechaInicioPeriodo = paymentTipo === 'recurring' || paymentTipo === 'renewal'
+      ? factura.created_at?.slice(0, 10)
+      : null
+    const fechaFinPeriodo = proximoPago
 
     const metodoPago = payment?.payment_method_type || 'MANUAL'
     const metodoLabel: Record<string, string> = {
@@ -82,6 +124,16 @@ serve(async (req) => {
       MANUAL: 'Manual',
     }
 
+    let estadoStr = subscription?.estado || '—'
+    const estadoMap: Record<string, string> = {
+      pending: 'Pendiente',
+      active: 'Activo',
+      past_due: 'Moroso',
+      cancelled: 'Cancelado',
+      expired: 'Expirado',
+    }
+    estadoStr = estadoMap[estadoStr.toLowerCase()] || estadoStr
+
     console.log('[generate-pdf] Building PDF...')
     const pdfBytes = await buildInvoicePdf({
       numero: factura.numero_factura,
@@ -92,13 +144,21 @@ serve(async (req) => {
       moneda: factura.moneda || 'COP',
       created_at: factura.created_at,
       wompi_transaction_id: factura.wompi_transaction_id,
+      wompi_reference: payment?.wompi_reference || null,
       metodo_pago: metodoLabel[metodoPago] || metodoPago,
       tenant_nombre: String(tenant.nombre_negocio || ''),
       tenant_nit: String(tenant.nit || ''),
       tenant_email: String(tenant.email_propietario || ''),
       tenant_telefono: tenant.telefono as string | null,
       plan_nombre: plan?.nombre || '—',
+      cliente_id: String(tenant.client_id || tenant.id || '—'),
+      estado: estadoStr,
+      old_plan_nombre: oldPlanNombre,
       sucursales_count: sucursalesCount ?? 0,
+      tipo: invoiceTipo,
+      proximo_pago: proximoPago,
+      fecha_inicio_periodo: fechaInicioPeriodo,
+      fecha_fin_periodo: fechaFinPeriodo,
     })
     console.log('[generate-pdf] PDF built, size:', pdfBytes.byteLength, 'bytes')
 

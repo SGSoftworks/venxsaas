@@ -20,10 +20,10 @@ export function PaymentPending() {
                 Revisar estado
               </Link>
               <Link
-                to="/registro"
+                to="/"
                 className="w-full px-4 py-2.5 border border-slate-200 text-slate-600 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors"
               >
-                Cancelar
+                Ir al inicio
               </Link>
             </div>
           </div>

@@ -4,7 +4,7 @@ import { useAuthStore } from '@/store/useAuthStore'
 import { useUIStore } from '@/store/useUIStore'
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs'
 import { classNames, getStatusColor, isSubscriptionExpiringSoon, daysUntil } from '@/lib/utils'
-import { buildWhatsAppUrl } from '@/lib/appConfig'
+import { buildWhatsAppUrl, APP_CONFIG } from '@/lib/appConfig'
 import iconApp from '@/assets/branding/icon-app.png'
 import {
   LayoutDashboard,
@@ -20,6 +20,8 @@ import {
   AlertCircle,
   SlidersHorizontal,
   Package,
+  Monitor,
+  ExternalLink,
 } from 'lucide-react'
 
 interface NavItem { to: string; icon: React.ComponentType<{ className?: string }>; label: string; end?: boolean }
@@ -32,6 +34,8 @@ const NAV_ITEMS = [
   { to: '/dashboard/sucursales', icon: Store, label: 'Sucursales' },
   { to: '/dashboard/inventario', icon: Package, label: 'Inventario' },
 ] satisfies NavItem[]
+
+const POS_EXTERNAL_LINK = { icon: Monitor, label: 'Sistema POS' } as const
 
 export function DashboardLayout() {
   const navigate = useNavigate()
@@ -58,7 +62,7 @@ export function DashboardLayout() {
       navigate('/pago', { replace: true })
     }
     if (tenant?.estado === 'pending_approval') {
-      navigate('/login', { replace: true })
+      navigate('/esperando-aprobacion', { replace: true })
     }
   }, [initialized, session, tenant, navigate, location.pathname])
 
@@ -132,6 +136,20 @@ export function DashboardLayout() {
               {label}
             </NavLink>
           ))}
+          <div className="pt-2">
+            <a
+              href={APP_CONFIG.POS_WEB_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-brand-50 hover:text-brand-700 transition-colors group"
+            >
+              <span className="flex items-center gap-3">
+                <Monitor className="w-4.5 h-4.5 flex-shrink-0" />
+                Sistema POS
+              </span>
+              <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-brand-500 transition-colors" />
+            </a>
+          </div>
         </nav>
 
         {/* Divider + User Info */}
