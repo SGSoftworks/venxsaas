@@ -10,8 +10,8 @@ import {
   Shield,
   Lock,
   Check,
-  Plus,
-  Minus,
+  Search,
+  ChevronDown,
   ArrowRight,
   Menu,
   X,
@@ -469,12 +469,37 @@ function Navbar() {
   )
 }
 
+type FaqCategory = {
+  id: string
+  label: string
+  icon: React.ComponentType<{ size?: number; className?: string }>
+  indices: number[]
+}
+
+const faqCategories: FaqCategory[] = [
+  { id: 'planes', label: 'Planes y Suscripciones', icon: Package, indices: [0, 1, 6, 7, 15, 16, 17, 23, 24] },
+  { id: 'pagos', label: 'Pagos y Facturación', icon: CreditCard, indices: [2, 8, 9, 10, 11, 13] },
+  { id: 'pos', label: 'Sistema POS', icon: Monitor, indices: [4, 20, 21, 22] },
+  { id: 'inventario', label: 'Inventario y Reportes', icon: BarChart3, indices: [18, 19] },
+  { id: 'seguridad', label: 'Seguridad y Acceso', icon: Lock, indices: [3, 12] },
+  { id: 'soporte', label: 'Soporte', icon: MessageCircle, indices: [5, 14] },
+]
+
 // ---------------------------------------------------------------------------
-// FAQ Item
+// FAQ Category Card
 // ---------------------------------------------------------------------------
 
-function FAQItem({ question, answer }: { question: string; answer: string }) {
-  const [open, setOpen] = useState(false)
+function AccordionItem({
+  question,
+  answer,
+  isOpen,
+  onToggle,
+}: {
+  question: string
+  answer: string
+  isOpen: boolean
+  onToggle: () => void
+}) {
   const contentRef = useRef<HTMLDivElement>(null)
   const innerRef = useRef<HTMLDivElement>(null)
 
@@ -483,7 +508,7 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
     const inner = innerRef.current
     if (!content || !inner) return
 
-    if (open) {
+    if (isOpen) {
       gsap.fromTo(
         content,
         { height: 0 },
@@ -504,36 +529,63 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
         }
       )
     }
-  }, [open])
+  }, [isOpen])
 
   return (
     <div className="border-b border-slate-100 last:border-b-0">
       <button
-        onClick={() => setOpen((prev) => !prev)}
-        className="flex w-full items-center justify-between py-5 text-left text-base font-medium text-slate-900 transition-colors hover:text-brand-600"
+        onClick={onToggle}
+        className="flex w-full items-center justify-between py-4 text-left text-sm font-medium text-slate-900 transition-colors hover:text-brand-600 gap-4"
       >
-        <span className="pr-4">{question}</span>
-        <span className="shrink-0 text-slate-400 transition-colors">
-          {open ? <Minus size={18} /> : <Plus size={18} />}
-        </span>
+        <span>{question}</span>
+        <ChevronDown
+          size={16}
+          className={`shrink-0 text-slate-400 transition-transform duration-300 ${
+            isOpen ? 'rotate-180' : ''
+          }`}
+        />
       </button>
       <div ref={contentRef} className="overflow-hidden" style={{ height: 0 }}>
-        <div ref={innerRef} className="pb-5 pr-8 text-sm leading-relaxed text-slate-500">
+        <div ref={innerRef} className="pb-4 pr-8 text-sm leading-relaxed text-slate-500">
           {answer}
-          </div>
-
-          <div className="mt-10 flex justify-center">
-            <a
-              href={buildWhatsAppUrl('Hola, me interesa conocer VenxPOS y recibir una cotizacion para mi negocio.')}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-7 py-3.5 text-base font-semibold text-white shadow-sm transition-all duration-300 ease-out hover:bg-brand-700 hover:shadow-[0_0_25px_rgba(109,60,245,0.25)] active:scale-[0.98]"
-            >
-              Cotizar Ahora
-              <ArrowRight size={18} />
-            </a>
-          </div>
         </div>
+      </div>
+    </div>
+  )
+}
+
+function FAQCategoryCard({
+  category,
+  items,
+}: {
+  category: FaqCategory
+  items: (typeof faqItems)[number][]
+}) {
+  const [openId, setOpenId] = useState<string | null>(null)
+
+  const toggle = (id: string) => {
+    setOpenId((prev) => (prev === id ? null : id))
+  }
+
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="mb-5 flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+          <category.icon size={20} />
+        </div>
+        <h3 className="text-lg font-semibold text-slate-900">{category.label}</h3>
+      </div>
+      <div className="space-y-1">
+        {items.map((item) => (
+          <AccordionItem
+            key={item.question}
+            question={item.question}
+            answer={item.answer}
+            isOpen={openId === item.question}
+            onToggle={() => toggle(item.question)}
+          />
+        ))}
+      </div>
     </div>
   )
 }
@@ -647,6 +699,8 @@ export function LandingPage() {
   const faqRef = useRef<HTMLElement>(null)
 
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
+  const [searchQuery, setSearchQuery] = useState('')
+  const [activeCategory, setActiveCategory] = useState<string | null>(null)
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -791,6 +845,28 @@ export function LandingPage() {
         }
       )
     }, pricingRef)
+
+    return () => ctx.revert()
+  }, [])
+
+  // --- FAQ scroll reveal ---
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        '.faq-content',
+        { opacity: 0, y: 30 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: faqRef.current,
+            start: 'top 80%',
+          },
+        }
+      )
+    }, faqRef)
 
     return () => ctx.revert()
   }, [])
@@ -1278,7 +1354,7 @@ export function LandingPage() {
       {/* FAQ                                                               */}
       {/* ================================================================= */}
       <section id="faq" ref={faqRef} className="bg-slate-50/50 py-20 sm:py-28">
-        <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 faq-content">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
               Preguntas frecuentes
@@ -1288,14 +1364,64 @@ export function LandingPage() {
             </p>
           </div>
 
-          <div className="mt-14 rounded-2xl border border-slate-200 bg-white px-5 shadow-sm sm:px-8">
-            {faqItems.map((item, index) => (
-              <FAQItem
-                key={index}
-                question={item.question}
-                answer={item.answer}
-              />
+          {/* Search */}
+          <div className="relative mx-auto mt-10 max-w-md">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Buscar preguntas..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-11 pr-4 text-sm outline-none transition-colors focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
+            />
+          </div>
+
+          {/* Category chips */}
+          <div className="mt-8 flex flex-wrap justify-center gap-2">
+            <button
+              onClick={() => setActiveCategory(null)}
+              className={`rounded-full px-4 py-1.5 text-xs font-medium transition-colors ${
+                !activeCategory
+                  ? 'bg-brand-600 text-white'
+                  : 'border border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+              }`}
+            >
+              Todas
+            </button>
+            {faqCategories.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setActiveCategory((prev) => (prev === cat.id ? null : cat.id))}
+                className={`rounded-full px-4 py-1.5 text-xs font-medium transition-colors ${
+                  activeCategory === cat.id
+                    ? 'bg-brand-600 text-white'
+                    : 'border border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                }`}
+              >
+                {cat.label}
+              </button>
             ))}
+          </div>
+
+          {/* Category cards */}
+          <div className="mt-12 space-y-8">
+            {faqCategories.map((cat) => {
+              const items = cat.indices
+                .map((i) => faqItems[i])
+                .filter((item) => {
+                  if (!searchQuery) return true
+                  const q = searchQuery.toLowerCase()
+                  return (
+                    item.question.toLowerCase().includes(q) ||
+                    item.answer.toLowerCase().includes(q)
+                  )
+                })
+              if (items.length === 0) return null
+              if (activeCategory && cat.id !== activeCategory) return null
+              return (
+                <FAQCategoryCard key={cat.id} category={cat} items={items} />
+              )
+            })}
           </div>
         </div>
       </section>
