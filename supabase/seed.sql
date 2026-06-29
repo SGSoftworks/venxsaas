@@ -5,12 +5,15 @@
 -- Preserva cuentas de gerencia y planes oficiales existentes
 -- =============================================
 -- INSTRUCCIONES PREVIAS (ejecutar UNA SOLA VEZ):
--- 1. Crear usuario auth:
---    supabase auth create-user --email demo@venxpos.com --password Demo2026!
---    O desde Supabase Dashboard > Authentication > Users > Invite user
--- 2. Anotar el UUID del usuario creado
--- 3. Reemplazar 'AUTH_USER_ID_AQUI' en este archivo con el UUID real
--- 4. Ejecutar este seed: supabase db reset
+-- 1. Crear usuario auth vía API:
+--    curl -X POST https://beacnoxukkoellhecofm.supabase.co/auth/v1/admin/users \
+--      -H "Authorization: Bearer SUPABASE_SERVICE_ROLE_KEY" \
+--      -H "apikey: VITE_SUPABASE_ANON_KEY" \
+--      -H "Content-Type: application/json" \
+--      -d '{"email":"demo@venxpos.com","password":"Demo123!","email_confirm":true}'
+-- 2. Anotar el UUID del usuario creado (retornado en la respuesta)
+-- 3. Reemplazar el UUID en la línea 'v_auth_user_id := '...'::UUID;' abajo
+-- 4. Ejecutar: supabase db query --file supabase/seed.sql --linked
 -- =============================================
 
 -- =============================================
@@ -78,7 +81,7 @@ RETURNING id INTO v_tenant_id;
 
 -- === 4. AUTH USER ===
 -- REEMPLAZA este UUID con el generado por: supabase auth create-user --email demo@venxpos.com --password Demo2026!
-v_auth_user_id := '00000000-0000-0000-0000-000000000001'::UUID;
+v_auth_user_id := 'c7ae6954-fa83-4b2c-84b0-06b97dacb52f'::UUID;
 UPDATE tenants SET auth_user_id = v_auth_user_id WHERE id = v_tenant_id;
 
 -- === 5. SUCURSAL ===
@@ -87,8 +90,8 @@ VALUES (gen_random_uuid(), 'Principal', '900123456-7', 'Cra 15 # 88-26, Bogota',
 RETURNING id INTO v_sucursal_id;
 
 -- === 6. EMPRESA ===
-INSERT INTO empresas (nombre, nit, email, telefono, plan, estado, tenant_id)
-VALUES ('VenxPOS Demo', '900123456-7', 'demo@venxpos.com', '3001234567', 'basico', 'activo', v_tenant_id);
+INSERT INTO empresas (nombre, plan, estado, tenant_id)
+VALUES ('VenxPOS Demo', 'basico', 'activo', v_tenant_id);
 
 -- === 7. BRANCH ACCOUNT ===
 INSERT INTO branch_accounts (tenant_id, sucursal_id, nombre_sucursal, email, activo)
@@ -241,6 +244,26 @@ INSERT INTO productos (id, sucursal_id, codigo_barras, descripcion, precio_venta
 SELECT gen_random_uuid(), v_sucursal_id, '7709001000053', 'Empanadas Congeladas x8', 12500, 8500, 0.19, 0, (SELECT id FROM categorias WHERE sucursal_id = v_sucursal_id AND nombre = 'Congelados'), 8;
 -- Total: 50 productos
 
+-- === 12b. PRODUCTOS VENTA LIBRE (9) ===
+INSERT INTO productos (id, sucursal_id, codigo_barras, descripcion, precio_venta, costo, tarifa_iva, tarifa_impoconsumo, categoria_id, stock_minimo)
+SELECT gen_random_uuid(), v_sucursal_id, 'VL-CARNES', 'Venta Libre Carnes', 0, 0, 0, 0, NULL, 999;
+INSERT INTO productos (id, sucursal_id, codigo_barras, descripcion, precio_venta, costo, tarifa_iva, tarifa_impoconsumo, categoria_id, stock_minimo)
+SELECT gen_random_uuid(), v_sucursal_id, 'VL-QUESOS', 'Venta Libre Quesos', 0, 0, 0, 0, NULL, 999;
+INSERT INTO productos (id, sucursal_id, codigo_barras, descripcion, precio_venta, costo, tarifa_iva, tarifa_impoconsumo, categoria_id, stock_minimo)
+SELECT gen_random_uuid(), v_sucursal_id, 'VL-VERDURAS', 'Venta Libre Verduras', 0, 0, 0, 0, NULL, 999;
+INSERT INTO productos (id, sucursal_id, codigo_barras, descripcion, precio_venta, costo, tarifa_iva, tarifa_impoconsumo, categoria_id, stock_minimo)
+SELECT gen_random_uuid(), v_sucursal_id, 'VL-FRUTAS', 'Venta Libre Frutas', 0, 0, 0, 0, NULL, 999;
+INSERT INTO productos (id, sucursal_id, codigo_barras, descripcion, precio_venta, costo, tarifa_iva, tarifa_impoconsumo, categoria_id, stock_minimo)
+SELECT gen_random_uuid(), v_sucursal_id, 'VL-PANADERIA', 'Venta Libre Panadería', 0, 0, 0, 0, NULL, 999;
+INSERT INTO productos (id, sucursal_id, codigo_barras, descripcion, precio_venta, costo, tarifa_iva, tarifa_impoconsumo, categoria_id, stock_minimo)
+SELECT gen_random_uuid(), v_sucursal_id, 'VL-DULCERIA', 'Venta Libre Dulcería', 0, 0, 0, 0, NULL, 999;
+INSERT INTO productos (id, sucursal_id, codigo_barras, descripcion, precio_venta, costo, tarifa_iva, tarifa_impoconsumo, categoria_id, stock_minimo)
+SELECT gen_random_uuid(), v_sucursal_id, 'VL-HUEVOS', 'Venta Libre Huevos', 0, 0, 0, 0, NULL, 999;
+INSERT INTO productos (id, sucursal_id, codigo_barras, descripcion, precio_venta, costo, tarifa_iva, tarifa_impoconsumo, categoria_id, stock_minimo)
+SELECT gen_random_uuid(), v_sucursal_id, 'VL-BEBIDAS', 'Venta Libre Bebidas', 0, 0, 0, 0, NULL, 999;
+INSERT INTO productos (id, sucursal_id, codigo_barras, descripcion, precio_venta, costo, tarifa_iva, tarifa_impoconsumo, categoria_id, stock_minimo)
+SELECT gen_random_uuid(), v_sucursal_id, 'VL-OTROS', 'Venta Libre Otros', 0, 0, 0, 0, NULL, 999;
+
 -- === 13. INVENTARIO INICIAL ===
 INSERT INTO inventario_sucursal (sucursal_id, producto_id, stock_actual, version)
 SELECT v_sucursal_id, p.id,
@@ -266,7 +289,7 @@ FOR v_day_offset IN 0..29 LOOP
     v_metodo_pago := (ARRAY['EFECTIVO', 'TARJETA', 'BILLETERA'])[1 + (random() * 3)::int];
 
     INSERT INTO ventas (id, sucursal_id, cajero_id, subtotal, impuestos, total, metodo_pago, monto_recibido, cambio_entregado, fecha_hora)
-    VALUES (gen_random_uuid(), v_sucursal_id, v_cajero_id, 0, 0, 0, v_metodo_pago, 0, 0, v_venta_date)
+    VALUES (gen_random_uuid(), v_sucursal_id, v_cajero_id, 0, 0, 0, COALESCE(v_metodo_pago, 'EFECTIVO'), 0, 0, v_venta_date)
     RETURNING id INTO v_venta_id;
 
     v_subtotal := 0;

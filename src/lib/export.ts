@@ -79,29 +79,4 @@ export const FACTURAS_COLUMNS: ExportColumn[] = [
   { key: 'created_at', header: 'Fecha', format: 'date', width: 14 },
 ]
 
-export const PAYMENTS_COLUMNS: ExportColumn[] = [
-  { key: 'wompi_transaction_id', header: 'ID Transacción', width: 30 },
-  { key: 'tenant_nombre', header: 'Cliente', width: 25 },
-  { key: 'amount', header: 'Monto', format: 'currency', width: 15 },
-  { key: 'payment_method_type', header: 'Método', width: 15 },
-  { key: 'status', header: 'Estado', width: 12 },
-  { key: 'tipo', header: 'Tipo', width: 14 },
-  { key: 'created_at', header: 'Fecha', format: 'date', width: 14 },
-]
 
-export const CLIENTS_COLUMNS: ExportColumn[] = [
-  { key: 'nombre_negocio', header: 'Negocio', width: 25 },
-  { key: 'nit', header: 'NIT', width: 18 },
-  { key: 'email_propietario', header: 'Email', width: 30 },
-  { key: 'telefono', header: 'Teléfono', width: 15 },
-  { key: 'plan_nombre', header: 'Plan', width: 15 },
-  { key: 'estado', header: 'Estado', width: 12 },
-  { key: 'created_at', header: 'Registro', format: 'date', width: 14 },
-]
-
-export const BRANCHES_COLUMNS: ExportColumn[] = [
-  { key: 'nombre_sucursal', header: 'Sucursal', width: 25 },
-  { key: 'email', header: 'Email', width: 30 },
-  { key: 'activo', header: 'Estado', width: 12 },
-  { key: 'created_at', header: 'Creada', format: 'date', width: 14 },
-]

@@ -34,6 +34,12 @@ serve(async (req) => {
         const signature = await generateSignature(reference, amountInCents)
         const email = (sub.tenants as { email_propietario: string }).email_propietario
 
+        const paymentSourceId = sub.payment_source_id
+        if (!paymentSourceId || isNaN(Number(paymentSourceId))) {
+          results.push({ tenantId, status: 'error', error: 'payment_source_id inválido' })
+          continue
+        }
+
         const { data: txData } = await wompiRequest('/transactions', {
           method: 'POST',
           body: JSON.stringify({
@@ -42,7 +48,7 @@ serve(async (req) => {
             customer_email: email,
             reference,
             signature,
-            payment_source_id: parseInt(sub.payment_source_id!),
+            payment_source_id: Number(paymentSourceId),
           }),
         })
 

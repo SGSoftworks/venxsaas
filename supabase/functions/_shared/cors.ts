@@ -7,6 +7,8 @@ const ALLOWED_ORIGINS = [
   'https://venxpos.com',
   'https://www.venxpos.com',
   'https://venxpos.vercel.app',
+  'https://venxpos.netlify.app',
+  'https://venxpos-pos.netlify.app',
 ]
 
 const ALLOWED_METHODS = 'POST, GET, OPTIONS'

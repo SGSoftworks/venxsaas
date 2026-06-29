@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuthStore } from '@/store/useAuthStore'
 import { supabase } from '@/lib/supabase/client'
-import { formatCurrency, formatDateShort, getStatusColor, getStatusLabel, daysUntil } from '@/lib/utils'
+import { formatCurrency, formatDateShort, getStatusColor, daysUntil } from '@/lib/utils'
 import type { Payment } from '@/types'
 
 interface LowStockItem {
