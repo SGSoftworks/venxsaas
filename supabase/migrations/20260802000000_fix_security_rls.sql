@@ -72,6 +72,7 @@ CREATE POLICY "superadmin_manage_empresas" ON public.empresas
 -- ============================================================================
 -- ANTES: cualquier authenticated podía leer TODAS las facturas
 DROP POLICY IF EXISTS "public_read_invoices" ON storage.objects;
+DROP POLICY IF EXISTS "tenant_read_invoices" ON storage.objects;
 
 CREATE POLICY "tenant_read_invoices" ON storage.objects
     FOR SELECT
@@ -94,6 +95,7 @@ CREATE POLICY "tenant_read_invoices" ON storage.objects
 -- ANTES: cualquier authenticated podía insertar audit logs
 -- Las Edge Functions usan supabaseAdmin (service_role), no necesitan policy
 DROP POLICY IF EXISTS "insert_audit_service" ON public.audit_logs;
+DROP POLICY IF EXISTS "insert_audit_superadmin" ON public.audit_logs;
 
 -- Solo superadmins pueden insertar audit logs directamente
 CREATE POLICY "insert_audit_superadmin" ON public.audit_logs
