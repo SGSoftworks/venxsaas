@@ -3,13 +3,14 @@
 -- Solo ejecuta si las tablas estan vacias
 -- ============================================================
 
--- Planes por defecto
-INSERT INTO public.plans (id, nombre, descripcion, precio_inicial, precio_mensual, caracteristicas, activo, created_at)
-SELECT * FROM (VALUES
-    ('plan_basico'::UUID, 'Basico', 'Para negocios pequenos', 0, 49000, '{"productos": 100, "sucursales": 1, "usuarios": 2}'::jsonb, true, NOW()),
-    ('plan_pro'::UUID, 'Profesional', 'Para negocios en crecimiento', 0, 99000, '{"productos": 1000, "sucursales": 3, "usuarios": 10}'::jsonb, true, NOW()),
-    ('plan_empresarial'::UUID, 'Empresarial', 'Para grandes operaciones', 0, 199000, '{"productos": 99999, "sucursales": 99, "usuarios": 99}'::jsonb, true, NOW())
-) AS v(id, nombre, descripcion, precio_inicial, precio_mensual, caracteristicas, activo, created_at)
+-- Planes por defecto (mismos precios que supabase/seed.sql)
+INSERT INTO public.plans (nombre, max_sucursales, max_administradores, precio_inicial, precio_mensual, features, activo, destacado)
+SELECT v.nombre, v.max_sucursales, v.max_administradores, v.precio_inicial, v.precio_mensual, v.features, true, v.destacado
+FROM (VALUES
+    ('Basico'::TEXT, 1, 1, 1490000::DECIMAL(12,2), 110900::DECIMAL(12,2), '["1 sucursal", "1 administrador", "Hasta 1.000 productos", "Soporte email"]'::jsonb, false),
+    ('Estandar'::TEXT, 4, 4, 1690000::DECIMAL(12,2), 229900::DECIMAL(12,2), '["4 sucursales", "4 administradores", "Hasta 5.000 productos", "Soporte preferente"]'::jsonb, true),
+    ('Pro'::TEXT, 10, 10, 1990000::DECIMAL(12,2), 449900::DECIMAL(12,2), '["10 sucursales", "10 administradores", "Productos ilimitados", "Soporte VIP", "API dedicada"]'::jsonb, false)
+) AS v(nombre, max_sucursales, max_administradores, precio_inicial, precio_mensual, features, destacado)
 WHERE NOT EXISTS (SELECT 1 FROM public.plans LIMIT 1);
 
 -- Superadmin por defecto (solo referencia, usuario auth debe crearse manualmente)
