@@ -264,20 +264,20 @@ BEGIN
     -- 11. ADD A FEW PAYMENTS FOR THE TENANT (so InvoicesPage shows data)
     RAISE NOTICE 'Creando pagos de prueba...';
     
-    INSERT INTO public.payments (id, tenant_id, wompi_transaction_id, wompi_reference, amount, currency, status, payment_method_type, tipo, created_at)
+    INSERT INTO public.payments (id, tenant_id, gateway_transaction_id, gateway_reference, amount, currency, status, payment_method_type, tipo, created_at)
     VALUES
         (gen_random_uuid(), v_tenant_id, 'tx_test_001', 'PAY-20260601-001', 400000, 'COP', 'approved', 'CARD', 'initial', '2026-06-01 10:00:00-05'::TIMESTAMPTZ),
         (gen_random_uuid(), v_tenant_id, 'tx_test_002', 'PAY-20260622-001', 250000, 'COP', 'approved', 'CARD', 'recurring', '2026-06-22 08:00:00-05'::TIMESTAMPTZ);
 
     -- Generate invoice for today's payment
-    INSERT INTO public.facturas_saas (id, tenant_id, payment_id, wompi_transaction_id, numero_factura, concepto, subtotal, iva, total, moneda, estado, created_at)
+    INSERT INTO public.facturas_saas (id, tenant_id, payment_id, gateway_transaction_id, numero_factura, concepto, subtotal, iva, total, moneda, estado, created_at)
     SELECT
-        gen_random_uuid(), v_tenant_id, p.id, p.wompi_transaction_id,
+        gen_random_uuid(), v_tenant_id, p.id, p.gateway_transaction_id,
         'VENX-2026-000001', 'Renovacion mensual - Plan Pro',
         ROUND(250000 / 1.19, 2), ROUND(250000 - (250000/1.19), 2), 250000,
         'COP', 'pagada', '2026-06-22 08:05:00-05'::TIMESTAMPTZ
     FROM public.payments p
-    WHERE p.wompi_reference = 'PAY-20260622-001'
+    WHERE p.gateway_reference = 'PAY-20260622-001'
     LIMIT 1;
 
     RAISE NOTICE '=== BASE DE DATOS LISTA ===';

@@ -9,7 +9,7 @@ Plataforma SaaS de gestión multi-tenant para VenxPOS — Punto de Venta colombi
 | Frontend | React 19, TypeScript, Vite, TailwindCSS, Zustand |
 | Router | React Router v7 |
 | Backend | Supabase (Auth, Database, Edge Functions) |
-| Pagos | Wompi (Sandbox API) |
+| Pagos | Manual (admin registra pagos) |
 | Email | Resend |
 | Hosting | Vercel |
 | Animaciones | GSAP + ScrollTrigger |
@@ -21,12 +21,11 @@ src/
 ├── components/
 │   ├── landing/      # Landing page pública
 │   ├── auth/         # Login, registro, guards
-│   ├── payment/      # Flujo de pago Wompi
 │   ├── dashboard/    # Panel del cliente
 │   └── admin/        # Panel superadmin
 ├── lib/
 │   ├── supabase/     # Cliente Supabase
-│   ├── wompi/        # Cliente Wompi + tipos
+│   ├── payment/      # Registro manual de pagos
 │   ├── validators.ts # Zod schemas
 │   └── utils.ts      # Utilidades
 ├── store/            # Zustand stores
@@ -38,12 +37,11 @@ supabase/
 ├── migrations/       # Migraciones SQL
 └── functions/        # Edge Functions (Deno)
     ├── _shared/      # Código compartido
-    ├── create-payment/
-    ├── wompi-webhook/
+    ├── approve-tenant/
     ├── create-branch/
-    ├── check-payment/
-    ├── send-email/
-    └── renew-subscriptions/
+    ├── generate-invoice/
+    ├── generate-pdf/
+    └── send-email/
 
 docs/                 # Documentación completa
 ```
@@ -63,23 +61,23 @@ npm run lint         # Lint TypeScript
 ```env
 VITE_SUPABASE_URL=https://beacnoxukkoellhecofm.supabase.co
 VITE_SUPABASE_ANON_KEY=tu_anon_key
-VITE_WOMPI_PUBLIC_KEY=pub_test_
+
 VITE_APP_URL=http://localhost:5174
 VITE_SUPERADMIN_EMAILS=admin@jgsoftworks.com
 ```
 
-Las llaves privadas (Wompi Private, Events, Integrity, Resend, Supabase Service Role) se configuran como **secrets en Supabase** para las Edge Functions. Nunca se exponen al frontend.
+Las llaves privadas (Resend, Supabase Service Role) se configuran como **secrets en Supabase** para las Edge Functions. Nunca se exponen al frontend.
 
 ## Edge Functions
 
 | Función | Propósito |
 |---|---|
-| `create-payment` | Crea payment source + transacción en Wompi |
-| `wompi-webhook` | Recibe eventos, verifica firma, activa tenants |
-| `create-branch` | Crea usuario auth + sucursal + branch account |
-| `check-payment` | Consulta estado de transacción en Wompi |
+| `approve-tenant` | Activa tenant y genera factura |
+| `generate-pdf` | Genera PDF de factura |
+| `generate-invoice` | Genera factura desde pago |
 | `send-email` | Envía emails transaccionales con Resend |
-| `renew-subscriptions` | Cobro recurrente mensual de suscripciones |
+
+> Nota MVP: renovaciones y cambios de plan self-service están **próximamente**. Se gestionan manualmente por WhatsApp y el administrador registra el pago con factura automática.
 
 ## Despliegue
 
@@ -88,12 +86,9 @@ Las llaves privadas (Wompi Private, Events, Integrity, Resend, Supabase Service 
 supabase db push
 
 # 2. Desplegar Edge Functions
-supabase functions deploy create-payment
-supabase functions deploy wompi-webhook
+supabase functions deploy approve-tenant
 supabase functions deploy create-branch
-supabase functions deploy check-payment
 supabase functions deploy send-email
-supabase functions deploy renew-subscriptions
 
 # 3. Desplegar frontend
 npm run deploy
@@ -103,7 +98,7 @@ npm run deploy
 
 - RLS en todas las tablas (aislamiento multi-tenant)
 - Edge Functions con `SECURITY DEFINER`
-- Webhooks Wompi verificados con SHA-256
+- Pagos registrados manualmente por el administrador
 - CSP, CORS, CSRF configurados
 - Llaves privadas solo en Edge Functions
 - Auditoría completa documentada en `docs/SECURITY_REPORT.md`
@@ -119,7 +114,7 @@ npm run deploy
 | `SECURITY_REPORT.md` | Auditoría de seguridad |
 | `RISK_ANALYSIS.md` | Matriz de riesgos |
 | `PRODUCTION_READINESS.md` | Checklist de producción |
-| `WOMPI.md` | Integración Wompi |
+| `DIAN_INTEGRATION.md` | Documentación para facturación electrónica DIAN |
 | `PAYMENTS_FLOW.md` | Flujo de pagos |
 | `DEPLOY_GUIDE.md` | Guía de despliegue |
 | `BACKUP_RECOVERY.md` | Backup y recuperación |

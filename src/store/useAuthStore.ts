@@ -10,11 +10,12 @@ interface AuthState {
   plan: Plan | null
   subscription: Subscription | null
   isSuperadmin: boolean
+  rol: string
   loading: boolean
   initialized: boolean
 
   initialize: () => Promise<void>
-  login: (email: string, password: string) => Promise<{ error?: string; needsPayment?: boolean; needsApproval?: boolean; mustChangePassword?: boolean }>
+  login: (email: string, password: string) => Promise<{ error?: string; needsApproval?: boolean; mustChangePassword?: boolean }>
   logout: () => Promise<void>
   refreshTenant: () => Promise<void>
 }
@@ -74,6 +75,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   plan: null,
   subscription: null,
   isSuperadmin: false,
+  rol: 'cajero',
   loading: false,
   initialized: false,
 
@@ -122,6 +124,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         .maybeSingle()
 
       set({ isSuperadmin: !!superData })
+
+      if (result.tenant) {
+        const { data: rolData } = await supabase.rpc('get_my_role')
+        if (rolData) set({ rol: rolData as string })
+      }
     } catch (err) {
       console.error('Auth initialization error:', err)
     } finally {
@@ -146,8 +153,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const result = await loadTenantData(data.user.id)
     set({ tenant: result.tenant, plan: result.plan, subscription: result.subscription })
 
-    if (result.tenant?.estado === 'pending_payment') {
-      return { needsPayment: true }
+    if (result.tenant) {
+      const { data: rolData } = await supabase.rpc('get_my_role')
+      if (rolData) set({ rol: rolData as string })
     }
 
     if (result.tenant?.estado === 'pending_approval') {

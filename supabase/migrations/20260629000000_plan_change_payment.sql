@@ -15,7 +15,7 @@ CREATE OR REPLACE FUNCTION process_plan_change(
   p_tenant_id UUID,
   p_payment_id UUID,
   p_new_plan_id UUID,
-  p_wompi_transaction_id TEXT
+  p_gateway_transaction_id TEXT
 )
 RETURNS VOID
 LANGUAGE plpgsql
@@ -29,7 +29,7 @@ BEGIN
   -- Mark payment as approved
   UPDATE payments
   SET status = 'approved',
-      wompi_transaction_id = p_wompi_transaction_id,
+      gateway_transaction_id = p_gateway_transaction_id,
       updated_at = NOW()
   WHERE id = p_payment_id AND status != 'approved';
 
@@ -56,7 +56,7 @@ BEGIN
     'payment_id', p_payment_id,
     'new_plan_id', p_new_plan_id,
     'new_plan_nombre', v_plan_nombre,
-    'wompi_transaction_id', p_wompi_transaction_id
+    'gateway_transaction_id', p_gateway_transaction_id
   ));
 END;
 $$;

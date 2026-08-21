@@ -124,7 +124,7 @@ export function TerminosPage() {
           <li><span className="font-medium text-slate-700">Plan Pro:</span> todas las funcionalidades, productos ilimitados, soporte WhatsApp y facturación electrónica ilimitada.</li>
         </ul>
         <p className="text-sm text-slate-600 leading-relaxed mt-3">
-          Los pagos se procesan a través de Wompi, pasarela de pagos de Bancolombia S.A.
+          Los pagos se procesan a través de una pasarela de pagos certificada.
           Al contratar un plan, el usuario autoriza los cobros recurrentes según el plan seleccionado.
           Todos los precios incluyen el IVA cuando corresponda según el Estatuto Tributario colombiano.
           VenxPOS se reserva el derecho de modificar los precios notificando con al menos treinta (30)

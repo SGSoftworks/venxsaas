@@ -52,8 +52,8 @@ BEGIN
     v_iva := v_payment.amount - v_subtotal;
     v_numero := public.generar_numero_factura(EXTRACT(YEAR FROM NOW())::integer);
 
-    INSERT INTO public.facturas_saas (tenant_id, payment_id, wompi_transaction_id, numero_factura, concepto, subtotal, iva, total, moneda, estado)
-    VALUES (v_payment.tenant_id, v_payment.id, v_payment.wompi_transaction_id, v_numero, v_concepto, v_subtotal, v_iva, v_payment.amount, v_payment.currency, 'emitida')
+    INSERT INTO public.facturas_saas (tenant_id, payment_id, gateway_transaction_id, numero_factura, concepto, subtotal, iva, total, moneda, estado)
+    VALUES (v_payment.tenant_id, v_payment.id, v_payment.gateway_transaction_id, v_numero, v_concepto, v_subtotal, v_iva, v_payment.amount, v_payment.currency, 'emitida')
     RETURNING id INTO v_factura_id;
 
     RETURN v_factura_id;

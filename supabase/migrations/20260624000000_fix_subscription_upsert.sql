@@ -48,7 +48,7 @@ BEGIN
     -- Actualizar pago
     UPDATE payments
     SET status = 'approved',
-        wompi_transaction_id = p_transaction_id,
+        gateway_transaction_id = p_transaction_id,
         updated_at = NOW()
     WHERE id = p_payment_id AND status != 'approved';
 

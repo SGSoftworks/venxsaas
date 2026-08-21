@@ -6,7 +6,7 @@
 |---|---|
 | Frontend | React 19, TypeScript, Vite 8, TailwindCSS v4, Zustand, React Router v7 |
 | Backend | Supabase (Auth, Database, Storage, Edge Functions Deno) |
-| Pagos | Wompi Sandbox API |
+| Pagos | Manual (admin registra pagos) |
 | Email | Resend |
 | Hosting | Vercel (SPA), Netlify (POS web), Supabase (EF) |
 | Exportación | xlsx |
@@ -23,7 +23,7 @@ venxpos-saas/
 │   └── assets/             # Imágenes, branding
 ├── supabase/
 │   ├── functions/          # 19 Edge Functions Deno
-│   │   └── _shared/        # CORS, auth, Wompi, notificaciones, env
+│   │   └── _shared/        # CORS, auth, notificaciones, env
 │   └── migrations/         # 64 migraciones SQL
 ├── api/                    # Vercel serverless wrappers (CRON)
 ├── scripts/                # Scripts de seed/simulación
@@ -46,18 +46,18 @@ venxpos-saas/
 - JWT verificado en Edge Functions via `supabaseAdmin.auth.getUser()`
 - Superadmin detectado via tabla `superadmins` + función `is_superadmin()`
 
-### Edge Functions (19)
-- **Registro**: `create-signup` → `check-signup` → `register-tenant` → `approve-tenant`
-- **Pagos**: `create-payment` → `check-payment` → `wompi-webhook` → `reconcile-payments`
-- **Suscripciones**: `renew-subscriptions` (CRON), `change-plan`, `create-renewal-payment`
+### Edge Functions (12)
+- **Registro**: `create-signup` → `register-tenant` → `approve-tenant`
+- **Pagos**: Manual (admin registra el pago y activa al tenant)
+- **Suscripciones**: MVP — renovaciones/cambios de plan self-service **próximamente** (RPCs `approve_renewal`/`approve_plan_change` conservados en BD sin uso)
 - **Facturación**: `generate-invoice`, `generate-pdf`
 - **Admin**: `create-client`, `create-branch`, `update-branch`, `admin-reset-password`
-- **Utilidades**: `send-email`, `log-audit`, `simulate-payment`
+- **Utilidades**: `send-email`, `log-audit`
 
 ### Shared Modules (`_shared/`)
 - `cors.ts` — Whitelist de orígenes permitidos
 - `supabase.ts` — `supabaseAdmin` (service_role) + verifyAuth, verifySuperAdmin, verifyInternalKey
-- `wompi.ts` — Firma de integridad, verificación de webhooks (TTL 5min), peticiones API
+- `wompi.ts` — Conservado como referencia para futura integración con pasarela de pagos
 - `notify.ts` + `email-template.ts` — Notificaciones transaccionales
 - `env.ts` — Mapeo de variables de entorno
 
@@ -68,7 +68,7 @@ venxpos-saas/
 
 ### Seguridad
 - JWT validation en Edge Functions
-- Webhook Wompi con firma SHA-256, TTL 5min
+- Pagos registrados manualmente por el administrador
 - RLS en todas las tablas (excepto plans y superadmins, intencional)
 - Service_role solo en Edge Functions (nunca en frontend)
 - CSP en vercel.json
@@ -77,9 +77,7 @@ venxpos-saas/
 ## Flujo de registro y pago
 
 1. Usuario llena formulario en LandingPage → `create-signup` (EF pública)
-2. Usuario es redirigido a Wompi Widget para pagar
-3. Frontend pollea `check-signup` hasta que Wompi aprueba
-4. Webhook Wompi confirma pago → `wompi-webhook` activa tenant
+2. (Flujo de pago manual — el administrador registra el pago y activa al tenant)
 5. Admin aprueba manualmente → `approve-tenant`
 6. Usuario hace login, cambia contraseña, accede al dashboard
 7. POS web vinculado via `branch_accounts`

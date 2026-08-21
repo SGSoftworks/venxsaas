@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS public.facturas_saas (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id uuid NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
     payment_id uuid REFERENCES public.payments(id) ON DELETE SET NULL,
-    wompi_transaction_id text,
+    gateway_transaction_id text,
     numero_factura text NOT NULL UNIQUE,
     concepto text NOT NULL,
     subtotal numeric(12,2) NOT NULL,
@@ -190,10 +190,10 @@ BEGIN
     v_numero := generar_numero_factura(EXTRACT(YEAR FROM NOW())::integer);
 
     INSERT INTO public.facturas_saas (
-        tenant_id, payment_id, wompi_transaction_id, numero_factura,
+        tenant_id, payment_id, gateway_transaction_id, numero_factura,
         concepto, subtotal, iva, total, moneda
     ) VALUES (
-        v_payment.tenant_id, v_payment.id, v_payment.wompi_transaction_id, v_numero,
+        v_payment.tenant_id, v_payment.id, v_payment.gateway_transaction_id, v_numero,
         v_concepto, v_subtotal, v_iva, v_payment.amount, v_payment.currency
     ) RETURNING id INTO v_factura_id;
 

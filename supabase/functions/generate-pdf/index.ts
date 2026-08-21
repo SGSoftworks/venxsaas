@@ -66,7 +66,7 @@ serve(async (req) => {
     console.log('[generate-pdf] Fetching payment...')
     const { data: payment } = await supabaseAdmin
       .from('payments')
-      .select('payment_method_type, tipo, wompi_reference')
+      .select('payment_method_type, tipo, gateway_reference')
       .eq('id', factura.payment_id)
       .maybeSingle()
     console.log('[generate-pdf] Payment:', payment?.payment_method_type || 'MANUAL', 'tipo:', payment?.tipo || '—')
@@ -143,8 +143,8 @@ serve(async (req) => {
       total: Number(factura.total),
       moneda: factura.moneda || 'COP',
       created_at: factura.created_at,
-      wompi_transaction_id: factura.wompi_transaction_id,
-      wompi_reference: payment?.wompi_reference || null,
+      gateway_transaction_id: factura.gateway_transaction_id,
+      gateway_reference: payment?.gateway_reference || null,
       metodo_pago: metodoLabel[metodoPago] || metodoPago,
       tenant_nombre: String(tenant.nombre_negocio || ''),
       tenant_nit: String(tenant.nit || ''),

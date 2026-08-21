@@ -1,5 +1,5 @@
 /**
- * VenxPOS SaaS — Simulación de 4 escenarios de pago Wompi Sandbox
+ * VenxPOS SaaS — Simulación de pagos (escenarios de prueba)
  * Uso: npx tsx scripts/simulate-payments.ts
  * Usa el service_role key de .env.local
  */
@@ -53,8 +53,8 @@ async function simulateApproved(tenantId: string) {
   // Insertar payment aprobado
   const { data: payment, error } = await supabase.from('payments').insert({
     tenant_id: tenantId,
-    wompi_transaction_id: txId,
-    wompi_reference: `SIM-OK-${tenantId.substring(0, 8)}`,
+    gateway_transaction_id: txId,
+    gateway_reference: `SIM-OK-${tenantId.substring(0, 8)}`,
     amount: 150000,
     currency: 'COP',
     status: 'approved',
@@ -91,8 +91,8 @@ async function simulatePending(tenantId: string) {
 
   const { data: payment, error } = await supabase.from('payments').insert({
     tenant_id: tenantId,
-    wompi_transaction_id: `link-sim-pending-${Date.now()}`,
-    wompi_reference: `SIM-PENDING-${tenantId.substring(0, 8)}`,
+    gateway_transaction_id: `link-sim-pending-${Date.now()}`,
+    gateway_reference: `SIM-PENDING-${tenantId.substring(0, 8)}`,
     amount: 150000,
     currency: 'COP',
     status: 'pending',
@@ -128,8 +128,8 @@ async function simulateDeclined(tenantId: string) {
 
   const { data: payment, error } = await supabase.from('payments').insert({
     tenant_id: tenantId,
-    wompi_transaction_id: `sim-declined-${Date.now()}`,
-    wompi_reference: `SIM-DECLINED-${tenantId.substring(0, 8)}`,
+    gateway_transaction_id: `sim-declined-${Date.now()}`,
+    gateway_reference: `SIM-DECLINED-${tenantId.substring(0, 8)}`,
     amount: 150000,
     currency: 'COP',
     status: 'declined',
@@ -154,8 +154,8 @@ async function simulateReconnect(tenantId: string) {
 
   const { data: payment, error } = await supabase.from('payments').insert({
     tenant_id: tenantId,
-    wompi_transaction_id: `link-sim-reconnect-${Date.now()}`,
-    wompi_reference: `SIM-RECONNECT-${tenantId.substring(0, 8)}`,
+    gateway_transaction_id: `link-sim-reconnect-${Date.now()}`,
+    gateway_reference: `SIM-RECONNECT-${tenantId.substring(0, 8)}`,
     amount: 150000,
     currency: 'COP',
     status: 'pending',
@@ -175,7 +175,7 @@ async function simulateReconnect(tenantId: string) {
 }
 
 async function main() {
-  console.log('VenxPOS — Simulación de pagos Wompi Sandbox')
+  console.log('VenxPOS — Simulación de pagos')
   console.log('=============================================')
 
   const tenantId = await getOrCreateTestTenant()

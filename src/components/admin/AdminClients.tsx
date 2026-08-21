@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { formatCurrency, formatDate, formatDateShort, getStatusColor as _gsc, getStatusLabel, classNames, isSubscriptionPastDue } from '@/lib/utils'
 import { useUIStore } from '@/store/useUIStore'
@@ -8,9 +8,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Eye,
-  PauseCircle,
-  PlayCircle,
-  X,
   Loader2,
   RefreshCw,
   Building2,
@@ -20,11 +17,8 @@ import {
   Hash,
   CreditCard,
   KeyRound,
-  Check,
-  ArrowRight,
   PenLine,
   Store,
-  FileText,
   Activity,
   Plus,
 } from 'lucide-react'
@@ -73,14 +67,9 @@ export function AdminClients() {
   const [total, setTotal] = useState(0)
   const [detailOpen, setDetailOpen] = useState<ClientDetail | null>(null)
   const [detailLoading, setDetailLoading] = useState(false)
-  const [confirmAction, setConfirmAction] = useState<{ client: Tenant; action: 'suspend' | 'reactivate' } | null>(null)
   const [resetPwdTarget, setResetPwdTarget] = useState<{ userId: string; label: string } | null>(null)
   const [newPassword, setNewPassword] = useState('')
   const [pwdSubmitting, setPwdSubmitting] = useState(false)
-  const [changePlanOpen, setChangePlanOpen] = useState(false)
-  const [allPlans, setAllPlans] = useState<Plan[]>([])
-  const [changePlanStatus, setChangePlanStatus] = useState<'idle' | 'processing' | 'approved'>('idle')
-  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
   const [editBranchTarget, setEditBranchTarget] = useState<{ branch: BranchAccount; sucursalId: string | null } | null>(null)
   const [editBranchForm, setEditBranchForm] = useState({ nombre_sucursal: '', nit: '', direccion: '', telefono: '' })
@@ -90,7 +79,7 @@ export function AdminClients() {
   const [createClientOpen, setCreateClientOpen] = useState(false)
   const [createClientPlans, setCreateClientPlans] = useState<Plan[]>([])
   const [createForm, setCreateForm] = useState({ nombreNegocio: '', nit: '', email: '', telefono: '', planId: '', fechaInicio: new Date().toISOString().split('T')[0] })
-  const [invoiceForm, setInvoiceForm] = useState({ metodo: '', factura: '', transaccionId: '', referencia: '', monto: '', motivo: 'recurring', nuevoPlanId: '' })
+  const [invoiceForm, setInvoiceForm] = useState({ metodo: '', factura: '', transaccionId: '', referencia: '', monto: '', motivo: 'recurring' })
   const [invoiceLoading, setInvoiceLoading] = useState(false)
 
   const [createLoading, setCreateLoading] = useState(false)
@@ -179,15 +168,13 @@ export function AdminClients() {
         { data: subscription },
         { data: payments },
         { data: branches },
-        { data: allPlansData },
       ] = await Promise.all([
         client.plan_id ? supabase.from('plans').select('*').eq('id', client.plan_id).maybeSingle() : Promise.resolve({ data: null }),
         supabase.from('subscriptions').select('*').eq('tenant_id', client.id).maybeSingle(),
         supabase.from('payments').select('*').eq('tenant_id', client.id).order('created_at', { ascending: false }).limit(20),
         supabase.from('branch_accounts').select('*').eq('tenant_id', client.id).order('created_at', { ascending: false }).limit(50),
-        supabase.from('plans').select('*').eq('activo', true).order('precio_mensual', { ascending: true }),
       ])
-      if (allPlansData) setAllPlans(allPlansData as Plan[])
+      const precioDefault = (plan as Plan | null)?.precio_mensual
       setDetailOpen({
         tenant: client,
         plan: plan as Plan | null,
@@ -195,6 +182,7 @@ export function AdminClients() {
         payments: (payments || []) as Payment[],
         branches: (branches || []) as BranchAccount[],
       })
+      setInvoiceForm({ metodo: '', factura: '', transaccionId: '', referencia: '', monto: precioDefault ? String(precioDefault) : '', motivo: 'recurring' })
     } catch {
       addToast('error', 'Error al cargar detalle')
     } finally {
@@ -211,8 +199,8 @@ export function AdminClients() {
         .from('payments')
         .insert({
           tenant_id: detailOpen.tenant.id,
-          wompi_transaction_id: invoiceForm.transaccionId || null,
-          wompi_reference: invoiceForm.referencia || invoiceForm.factura || `VENX-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
+          gateway_transaction_id: invoiceForm.transaccionId || null,
+          gateway_reference: invoiceForm.referencia || invoiceForm.factura || `VENX-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
           amount,
           currency: 'COP',
           status: 'approved',
@@ -253,32 +241,13 @@ export function AdminClients() {
       }
 
       addToast('success', `Factura generada exitosamente`)
-      setInvoiceForm({ metodo: '', factura: '', transaccionId: '', referencia: '', monto: '', motivo: 'recurring', nuevoPlanId: '' })
+      const precioDefault = detailOpen.plan?.precio_mensual
+      setInvoiceForm({ metodo: '', factura: '', transaccionId: '', referencia: '', monto: precioDefault ? String(precioDefault) : '', motivo: 'recurring' })
       openDetail(detailOpen.tenant)
     } catch (e) {
       addToast('error', e instanceof Error ? e.message : 'Error al generar factura')
     } finally {
       setInvoiceLoading(false)
-    }
-  }
-
-  const handleSuspend = async () => {
-    if (!confirmAction) return
-    const { client, action } = confirmAction
-    if (action === 'reactivate' && client.estado === 'pending_payment') {
-      addToast('error', 'No se puede reactivar un cliente que no ha completado el pago inicial')
-      setConfirmAction(null)
-      return
-    }
-    const newEstado = action === 'suspend' ? 'suspended' : 'active'
-    try {
-      const { error: upError } = await supabase.from('tenants').update({ estado: newEstado }).eq('id', client.id)
-      if (upError) throw upError
-      addToast('success', `Cliente ${action === 'suspend' ? 'suspendido' : 'reactivado'}`)
-      setConfirmAction(null)
-      setRefreshKey(k => k + 1)
-    } catch {
-      addToast('error', 'Error al actualizar estado')
     }
   }
 
@@ -346,58 +315,6 @@ export function AdminClients() {
       // keep defaults
     } finally {
       setEditBranchFetching(false)
-    }
-  }
-
-  const openChangePlan = async () => {
-    const { data: plans } = await supabase.from('plans').select('*').eq('activo', true).order('precio_mensual', { ascending: true })
-    setAllPlans((plans || []) as Plan[])
-    setSelectedPlanId(null)
-    setChangePlanStatus('idle')
-    setChangePlanOpen(true)
-  }
-
-  const handleConfirmChangePlan = async () => {
-    if (!selectedPlanId || !detailOpen) return
-    try {
-      setChangePlanStatus('processing')
-      const { error: rpcErr } = await supabase.rpc('change_subscription_plan', {
-        p_tenant_id: detailOpen.tenant.id,
-        p_new_plan_id: selectedPlanId,
-      })
-      if (rpcErr) throw rpcErr
-
-      const newPlan = allPlans.find(p => p.id === selectedPlanId)
-      if (newPlan) {
-        const { data: newPayment, error: payErr } = await supabase
-          .from('payments')
-          .insert({
-            tenant_id: detailOpen.tenant.id,
-            amount: newPlan.precio_mensual,
-            currency: 'COP',
-            status: 'approved',
-            tipo: 'plan_change',
-          })
-          .select('id')
-          .single()
-        if (!payErr && newPayment) {
-          const { data: invId } = await supabase.rpc('generar_factura_desde_pago', { p_payment_id: newPayment.id })
-          if (invId) {
-            supabase.functions.invoke('generate-pdf', { body: { invoiceId: invId } }).catch(() => {})
-          }
-        }
-      }
-
-      setChangePlanStatus('approved')
-      setTimeout(() => {
-        setChangePlanOpen(false)
-        setChangePlanStatus('idle')
-        openDetail(detailOpen.tenant)
-        addToast('success', 'Plan actualizado exitosamente')
-      }, 1500)
-    } catch (e) {
-      addToast('error', e instanceof Error ? e.message : 'Error al cambiar plan')
-      setChangePlanStatus('idle')
     }
   }
 
@@ -512,23 +429,6 @@ export function AdminClients() {
                       </span>
                     </div>
                     <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
-                      {c.estado === 'pending_approval' ? null : c.estado === 'active' ? (
-                        <button
-                          onClick={() => setConfirmAction({ client: c, action: 'suspend' })}
-                          className="p-1.5 rounded-md hover:bg-warning-50 text-slate-400 hover:text-warning-600 transition-colors"
-                          title="Suspender"
-                        >
-                          <PauseCircle className="w-3.5 h-3.5" />
-                        </button>
-                      ) : c.estado === 'suspended' ? (
-                        <button
-                          onClick={() => setConfirmAction({ client: c, action: 'reactivate' })}
-                          className="p-1.5 rounded-md hover:bg-success-50 text-slate-400 hover:text-success-500 transition-colors"
-                          title="Reactivar"
-                        >
-                          <PlayCircle className="w-3.5 h-3.5" />
-                        </button>
-                      ) : null}
                       <button
                         onClick={() => openDetail(c)}
                         className="p-1.5 rounded-md hover:bg-slate-100 text-slate-400 group-hover:text-slate-600 transition-colors"
@@ -647,13 +547,6 @@ export function AdminClients() {
                         <div className="bg-slate-50 rounded-lg p-4">
                           <div className="flex items-center justify-between mb-3">
                             <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Suscripción</h3>
-                            <button
-                              onClick={openChangePlan}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium text-brand-700 bg-brand-50 hover:bg-brand-100 rounded-md transition-colors"
-                            >
-                              Cambiar plan
-                              <ArrowRight className="w-3 h-3" />
-                            </button>
                           </div>
                           <div className="flex flex-wrap items-center gap-4">
                             <div className="flex items-center gap-2">
@@ -755,7 +648,7 @@ export function AdminClients() {
                           <select value={invoiceForm.metodo} onChange={e => setInvoiceForm({ ...invoiceForm, metodo: e.target.value })}
                             className="w-full mt-0.5 px-2 py-1 text-[11px] border border-slate-200 rounded-md focus:outline-none focus:border-brand-500 bg-white">
                             <option value="">Seleccionar</option>
-                            <option value="Wompi">Wompi</option>
+
                             <option value="Nequi">Nequi</option>
                             <option value="Daviplata">Daviplata</option>
                             <option value="Transferencia">Transferencia</option>
@@ -788,34 +681,19 @@ export function AdminClients() {
                         </div>
                         <div>
                           <label className="text-[9px] text-slate-400 uppercase tracking-wider">Motivo</label>
-                          <select value={invoiceForm.motivo} onChange={e => setInvoiceForm({ ...invoiceForm, motivo: e.target.value, nuevoPlanId: '' })}
+                          <select value={invoiceForm.motivo} onChange={e => {
+                            const motivo = e.target.value
+                            const precio = motivo === 'initial'
+                              ? detailOpen.plan?.precio_inicial
+                              : detailOpen.plan?.precio_mensual
+                            setInvoiceForm({ ...invoiceForm, motivo, monto: precio ? String(precio) : '' })
+                          }}
                             className="w-full mt-0.5 px-2 py-1 text-[11px] border border-slate-200 rounded-md focus:outline-none focus:border-brand-500 bg-white">
                             <option value="initial">Activacion</option>
                             <option value="recurring">Renovacion</option>
-                            <option value="plan_change">Cambio de Plan</option>
                           </select>
                         </div>
                       </div>
-
-                      {invoiceForm.motivo === 'plan_change' && (
-                        <div className="grid grid-cols-2 gap-2 mb-2">
-                          <div>
-                            <label className="text-[9px] text-slate-400 uppercase tracking-wider">Plan anterior</label>
-                            <input readOnly value={detailOpen?.plan?.nombre || '—'}
-                              className="w-full mt-0.5 px-2 py-1 text-[11px] border border-slate-200 rounded-md bg-slate-50 text-slate-500 font-mono" />
-                          </div>
-                          <div>
-                            <label className="text-[9px] text-slate-400 uppercase tracking-wider">Nuevo plan</label>
-                            <select value={invoiceForm.nuevoPlanId} onChange={e => setInvoiceForm({ ...invoiceForm, nuevoPlanId: e.target.value })}
-                              className="w-full mt-0.5 px-2 py-1 text-[11px] border border-slate-200 rounded-md focus:outline-none focus:border-brand-500 bg-white">
-                              <option value="">Seleccionar</option>
-                              {allPlans.filter(p => p.id !== detailOpen?.plan?.id).map(p => (
-                                <option key={p.id} value={p.id}>{p.nombre}</option>
-                              ))}
-                            </select>
-                          </div>
-                        </div>
-                      )}
 
                       <div className="flex items-center gap-2">
                         <button
@@ -866,134 +744,6 @@ export function AdminClients() {
                 )}
               </div>
             )}
-          </>
-        )}
-      </AppModal>
-
-      {/* Confirm Action Modal */}
-      <AppModal
-        open={!!confirmAction}
-        onClose={() => setConfirmAction(null)}
-        title={confirmAction?.action === 'suspend' ? 'Suspender cliente' : 'Reactivar cliente'}
-        z={zIndex.MODAL_NESTED}
-      >
-        <div className="p-5">
-          <p className="text-[13px] text-slate-500">
-            {confirmAction?.action === 'suspend'
-              ? `¿Estás seguro de suspender a "${confirmAction?.client.nombre_negocio}"? No podrá acceder al sistema.`
-              : `¿Estás seguro de reactivar a "${confirmAction?.client.nombre_negocio}"?`}
-          </p>
-          <div className="flex justify-end gap-2 mt-4">
-            <button
-              onClick={() => setConfirmAction(null)}
-              className="px-3 py-1.5 text-[13px] font-medium text-slate-600 hover:bg-slate-50 rounded-md transition-colors"
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={handleSuspend}
-              className={`px-3 py-1.5 text-[13px] font-medium text-white rounded-md transition-colors ${
-                confirmAction?.action === 'suspend' ? 'bg-warning-500 hover:bg-warning-600' : 'bg-success-500 hover:bg-success-600'
-              }`}
-            >
-              {confirmAction?.action === 'suspend' ? 'Suspender' : 'Reactivar'}
-            </button>
-          </div>
-        </div>
-      </AppModal>
-
-      {/* Change Plan Modal */}
-      <AppModal
-        open={changePlanOpen}
-        onClose={() => { setChangePlanOpen(false); setChangePlanStatus('idle') }}
-        title="Cambiar plan"
-        z={zIndex.MODAL_NESTED}
-      >
-        {changePlanStatus === 'processing' ? (
-          <div className="p-8 text-center">
-            <Loader2 className="w-8 h-8 animate-spin text-brand-600 mx-auto mb-3" />
-            <p className="text-sm text-slate-600">Actualizando plan...</p>
-          </div>
-        ) : changePlanStatus === 'approved' ? (
-          <div className="p-8 text-center">
-            <div className="w-10 h-10 bg-success-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <Check className="w-5 h-5 text-success-500" />
-            </div>
-            <p className="text-sm font-semibold text-success-600">Plan actualizado</p>
-          </div>
-        ) : (
-          <>
-            <div className="p-5 border-b border-slate-100">
-              <p className="text-xs text-slate-400 mb-4">Selecciona el nuevo plan para <span className="font-medium text-slate-600">{detailOpen?.tenant.nombre_negocio}</span></p>
-              <div className="grid gap-3 sm:grid-cols-3">
-              {allPlans.map((plan) => {
-                const isCurrent = detailOpen?.plan?.id === plan.id
-                const isSelected = plan.id === selectedPlanId
-                return (
-                  <button
-                    key={plan.id}
-                    disabled={isCurrent}
-                    onClick={() => setSelectedPlanId(plan.id)}
-                    className={`text-left p-4 rounded-xl border-2 transition-all ${
-                      isCurrent
-                        ? 'border-slate-200 bg-slate-50 cursor-default'
-                        : isSelected
-                        ? 'border-brand-500 bg-brand-50 ring-1 ring-brand-200'
-                        : 'border-slate-200 hover:border-brand-200'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-semibold text-slate-800">{plan.nombre}</span>
-                      {isCurrent && <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">Actual</span>}
-                    </div>
-                    <span className="text-lg font-bold text-slate-800">{formatCurrency(plan.precio_mensual)}<span className="text-xs font-normal text-slate-500">/mes</span></span>
-                    <div className="mt-2 space-y-0.5">
-                      {(plan.features as string[]).slice(0, 3).map((f, i) => (
-                        <div key={i} className="flex items-center gap-1.5 text-[11px] text-slate-500"><Check className="w-3 h-3 text-success-500 flex-shrink-0" />{f}</div>
-                      ))}
-                    </div>
-                  </button>
-                )
-              })}
-            </div>
-            </div>
-
-            {selectedPlanId && selectedPlanId !== detailOpen?.plan?.id && (
-              <div className="px-5 py-4 bg-brand-50/40 border-b border-slate-100">
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-3">
-                    <div className="text-right">
-                      <p className="text-[11px] text-slate-400">Plan actual</p>
-                      <p className="text-sm font-semibold text-slate-600">{detailOpen?.plan?.nombre || '—'}</p>
-                      <p className="text-[11px] font-mono text-slate-400">{detailOpen?.plan?.precio_mensual ? formatCurrency(detailOpen.plan.precio_mensual) : ''}</p>
-                    </div>
-                    <ArrowRight className="w-4 h-4 text-slate-300" />
-                    <div>
-                      <p className="text-[11px] text-slate-400">Nuevo plan</p>
-                      <p className="text-sm font-semibold text-brand-700">{allPlans.find(p => p.id === selectedPlanId)?.nombre || '—'}</p>
-                      <p className="text-[11px] font-mono text-brand-600">{allPlans.find(p => p.id === selectedPlanId)?.precio_mensual ? formatCurrency(allPlans.find(p => p.id === selectedPlanId)!.precio_mensual) : ''}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-[11px] text-slate-400">Sucursales</p>
-                    <p className="text-sm font-semibold text-slate-700">
-                      {detailOpen?.plan?.max_sucursales ?? '?'} → {allPlans.find(p => p.id === selectedPlanId)?.max_sucursales ?? '?'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div className="px-5 pb-5 pt-4 flex justify-end gap-2.5">
-              <button onClick={() => { setChangePlanOpen(false); setChangePlanStatus('idle') }} className="px-4 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors">Cancelar</button>
-              <button
-                disabled={!selectedPlanId || selectedPlanId === detailOpen?.plan?.id}
-                onClick={handleConfirmChangePlan}
-                className="px-4 py-2 rounded-lg text-sm font-semibold bg-brand-600 text-white hover:bg-brand-700 disabled:opacity-50 transition-colors"
-              >
-                Confirmar cambio
-              </button>
-            </div>
           </>
         )}
       </AppModal>

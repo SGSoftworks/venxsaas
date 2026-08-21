@@ -28,11 +28,6 @@ function StatusMessage({ estado }: { estado: string }) {
       title: 'Cuenta cancelada',
       message: 'Tu cuenta ha sido cancelada. Si crees que esto es un error, contacta a soporte.',
     },
-    pending_payment: {
-      icon: Clock, color: 'text-amber-600 bg-amber-100',
-      title: 'Pago pendiente',
-      message: 'Tu cuenta aun no ha sido activada. Completa el pago para acceder al sistema.',
-    },
     pending_approval: {
       icon: Clock, color: 'text-amber-600 bg-amber-100',
       title: 'Cuenta en revision',
@@ -55,14 +50,10 @@ function StatusMessage({ estado }: { estado: string }) {
             <p className="text-sm text-slate-500 mt-2">{c.message}</p>
           </div>
 
-          {(estado === 'pending_payment' || estado === 'pending_approval') && (
+          {estado === 'pending_approval' && (
             <div className="flex items-center gap-3 mt-1">
               <a
-                href={buildWhatsAppUrl(
-                  estado === 'pending_payment'
-                    ? 'Hola. Ya realice mi pago en VenxPOS. Podrian verificar y activar mi cuenta?'
-                    : 'Hola. Mi cuenta esta en revision en VenxPOS. Podrian agilizar el proceso?'
-                )}
+                href={buildWhatsAppUrl('Hola. Mi cuenta esta en revision en VenxPOS. Podrian agilizar el proceso?')}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-medium bg-green-600 text-white hover:bg-green-700 transition-colors"
@@ -171,7 +162,6 @@ export function AuthGuard({ children }: { children: ReactNode }) {
   if (!initialized || loading) return <FullScreenLoader />
   if (!session) return <Navigate to="/login" replace />
   if (!tenant && !isSuperadmin) return <NoAccessMessage isPOSUser={!tenant && !!session} />
-  if (tenant?.estado === 'pending_payment') return <StatusMessage estado="pending_payment" />
   if (tenant?.estado === 'suspended') return <StatusMessage estado="suspended" />
   if (tenant?.estado === 'cancelled') return <StatusMessage estado="cancelled" />
   if (tenant?.estado === 'pending_approval') return <StatusMessage estado="pending_approval" />

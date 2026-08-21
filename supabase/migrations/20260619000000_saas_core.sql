@@ -83,8 +83,8 @@ CREATE TABLE IF NOT EXISTS payments (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
     subscription_id UUID REFERENCES subscriptions(id) ON DELETE SET NULL,
-    wompi_transaction_id TEXT,
-    wompi_reference TEXT UNIQUE,
+    gateway_transaction_id TEXT, -- disponible para futura integracion
+    gateway_reference TEXT, -- disponible para futura integracion
     amount DECIMAL(12,2) NOT NULL,
     currency TEXT DEFAULT 'COP',
     status TEXT NOT NULL DEFAULT 'pending'
@@ -216,7 +216,7 @@ $$;
 CREATE OR REPLACE FUNCTION activate_tenant(
     p_tenant_id UUID,
     p_payment_id UUID,
-    p_wompi_transaction_id TEXT,
+    p_gateway_transaction_id TEXT,
     p_payment_source_id TEXT
 )
 RETURNS VOID
@@ -239,7 +239,7 @@ BEGIN
     -- 1. Update payment record
     UPDATE payments
     SET status = 'approved',
-        wompi_transaction_id = p_wompi_transaction_id,
+        gateway_transaction_id = p_gateway_transaction_id,
         updated_at = NOW()
     WHERE id = p_payment_id
       AND tenant_id = p_tenant_id;
@@ -290,7 +290,7 @@ BEGIN
         jsonb_build_object(
             'plan_id', v_tenant.plan_id,
             'payment_id', p_payment_id,
-            'wompi_transaction_id', p_wompi_transaction_id
+            'gateway_transaction_id', p_gateway_transaction_id
         )
     );
 
@@ -323,7 +323,7 @@ BEGIN
     -- 1. Update payment record
     UPDATE payments
     SET status = 'approved',
-        wompi_transaction_id = p_wompi_transaction_id,
+        gateway_transaction_id = p_gateway_transaction_id,
         updated_at = NOW()
     WHERE id = p_payment_id
       AND tenant_id = p_tenant_id;
@@ -362,7 +362,7 @@ BEGIN
             'previous_renewal', v_subscription.fecha_renovacion,
             'previous_next_billing', v_subscription.proximo_cobro,
             'payment_id', p_payment_id,
-            'wompi_transaction_id', p_wompi_transaction_id
+            'gateway_transaction_id', p_gateway_transaction_id
         )
     );
 END;
@@ -617,7 +617,7 @@ CREATE INDEX IF NOT EXISTS idx_subscription_events_created_at ON subscription_ev
 -- payments
 CREATE INDEX IF NOT EXISTS idx_payments_tenant_id ON payments(tenant_id);
 CREATE INDEX IF NOT EXISTS idx_payments_subscription_id ON payments(subscription_id);
-CREATE INDEX IF NOT EXISTS idx_payments_wompi_transaction_id ON payments(wompi_transaction_id);
+CREATE INDEX IF NOT EXISTS idx_payments_gateway_transaction_id ON payments(gateway_transaction_id);
 CREATE INDEX IF NOT EXISTS idx_payments_status ON payments(status);
 CREATE INDEX IF NOT EXISTS idx_payments_created_at ON payments(created_at DESC);
 

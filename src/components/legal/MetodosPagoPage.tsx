@@ -12,7 +12,7 @@ const sections: LegalSection[] = [
 ]
 
 const paymentMethods = [
-  { icon: CreditCard, name: 'Wompi (PSE, tarjetas crédito/débito)', desc: 'Pasarela de pagos de Bancolombia S.A.' },
+  { icon: CreditCard, name: 'PSE, tarjetas crédito/débito', desc: 'Pasarela de pagos en línea' },
   { icon: Smartphone, name: 'Nequi', desc: 'Transferencia desde la app Nequi' },
   { icon: Smartphone, name: 'Daviplata', desc: 'Transferencia desde la app Daviplata' },
   { icon: Building2, name: 'Bre-B', desc: 'Transferencia inmediata' },
@@ -51,7 +51,7 @@ export function MetodosPagoPage() {
 
       <Section id="procesamiento" num="2" title="Procesamiento de Pagos">
         <p className="text-sm text-slate-600 leading-relaxed">
-          Los pagos son procesados a través de Wompi, pasarela de pagos certificada de Bancolombia
+          Los pagos son procesados a través de una pasarela de pagos certificada
           S.A., que cumple con los más altos estándares de seguridad PCI-DSS. VenxPOS no almacena
           información sensible de tarjetas de crédito o débito. Todos los pagos generan una factura
           electrónica formal que será enviada al correo registrado del Cliente.
@@ -72,7 +72,7 @@ export function MetodosPagoPage() {
         <p className="text-sm text-slate-600 leading-relaxed">
           Todas las transacciones realizadas a través de VenxPOS utilizan cifrado TLS 1.3 y
           cumplen con los estándares de seguridad exigidos por la legislación colombiana.
-          Wompi, como operador de la pasarela de pagos, está certificado bajo el estándar
+          La pasarela de pagos está certificada bajo el estándar
           internacional PCI-DSS (Payment Card Industry Data Security Standard).
         </p>
       </Section>

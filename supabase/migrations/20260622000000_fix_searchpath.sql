@@ -52,7 +52,7 @@ $$;
 CREATE OR REPLACE FUNCTION activate_tenant(
     p_tenant_id UUID,
     p_payment_id UUID,
-    p_wompi_transaction_id TEXT,
+    p_gateway_transaction_id TEXT,
     p_payment_source_id TEXT DEFAULT ''
 )
 RETURNS VOID
@@ -64,7 +64,7 @@ DECLARE
     v_tenant_email TEXT; v_tenant_nombre TEXT; v_tenant_plan_id UUID; v_subscription_id UUID;
 BEGIN
     IF EXISTS (SELECT 1 FROM tenants WHERE id = p_tenant_id AND estado = 'active') THEN RETURN; END IF;
-    UPDATE payments SET status = 'approved', wompi_transaction_id = p_wompi_transaction_id, updated_at = NOW() WHERE id = p_payment_id;
+    UPDATE payments SET status = 'approved', gateway_transaction_id = p_gateway_transaction_id, updated_at = NOW() WHERE id = p_payment_id;
     UPDATE tenants SET estado = 'active', updated_at = NOW() WHERE id = p_tenant_id
     RETURNING email_propietario, nombre_negocio, plan_id INTO v_tenant_email, v_tenant_nombre, v_tenant_plan_id;
     INSERT INTO empresas (nombre, plan, estado, tenant_id) VALUES (v_tenant_nombre, 'basico', 'activo', p_tenant_id) ON CONFLICT (tenant_id) DO NOTHING;
@@ -73,7 +73,7 @@ BEGIN
         VALUES (p_tenant_id, v_tenant_plan_id, 'active', CURRENT_DATE, CURRENT_DATE + 30, CURRENT_DATE + 30, p_payment_source_id)
         RETURNING id INTO v_subscription_id;
         INSERT INTO subscription_events (subscription_id, tenant_id, tipo, metadata)
-        VALUES (v_subscription_id, p_tenant_id, 'activated', jsonb_build_object('payment_id', p_payment_id, 'transaction_id', p_wompi_transaction_id));
+        VALUES (v_subscription_id, p_tenant_id, 'activated', jsonb_build_object('payment_id', p_payment_id, 'transaction_id', p_gateway_transaction_id));
     END IF;
 END;
 $$;
@@ -82,7 +82,7 @@ $$;
 CREATE OR REPLACE FUNCTION process_renewal(
     p_tenant_id UUID,
     p_payment_id UUID,
-    p_wompi_transaction_id TEXT
+    p_gateway_transaction_id TEXT
 )
 RETURNS VOID
 LANGUAGE plpgsql
@@ -91,14 +91,14 @@ SET search_path = 'public'
 AS $$
 DECLARE v_subscription RECORD;
 BEGIN
-    UPDATE payments SET status = 'approved', wompi_transaction_id = p_wompi_transaction_id, updated_at = NOW()
+    UPDATE payments SET status = 'approved', gateway_transaction_id = p_gateway_transaction_id, updated_at = NOW()
     WHERE id = p_payment_id AND tenant_id = p_tenant_id;
     SELECT * INTO v_subscription FROM subscriptions WHERE tenant_id = p_tenant_id AND estado = 'active' ORDER BY created_at DESC LIMIT 1;
     IF NOT FOUND THEN RAISE EXCEPTION 'No active subscription found for tenant %', p_tenant_id; END IF;
     UPDATE subscriptions SET fecha_renovacion = CURRENT_DATE, proximo_cobro = CURRENT_DATE + INTERVAL '1 month', updated_at = NOW()
     WHERE id = v_subscription.id;
     INSERT INTO subscription_events (subscription_id, tenant_id, tipo, metadata)
-    VALUES (v_subscription.id, p_tenant_id, 'renewed', jsonb_build_object('payment_id', p_payment_id, 'wompi_transaction_id', p_wompi_transaction_id));
+    VALUES (v_subscription.id, p_tenant_id, 'renewed', jsonb_build_object('payment_id', p_payment_id, 'gateway_transaction_id', p_gateway_transaction_id));
 END;
 $$;
 
@@ -119,7 +119,7 @@ DECLARE
 BEGIN
     IF EXISTS (SELECT 1 FROM tenants WHERE id = p_tenant_id AND estado = 'active') THEN RETURN; END IF;
     SELECT nombre_negocio, nit INTO v_tenant_nombre, v_tenant_nit FROM tenants WHERE id = p_tenant_id;
-    UPDATE payments SET status = 'approved', wompi_transaction_id = p_transaction_id, updated_at = NOW()
+    UPDATE payments SET status = 'approved', gateway_transaction_id = p_transaction_id, updated_at = NOW()
     WHERE id = p_payment_id AND status != 'approved';
     UPDATE tenants SET estado = 'active', updated_at = NOW() WHERE id = p_tenant_id;
     INSERT INTO empresas (nombre, plan, estado, tenant_id) VALUES (v_tenant_nombre, 'basico', 'activo', p_tenant_id)

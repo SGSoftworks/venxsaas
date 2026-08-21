@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS public.payment_proofs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id UUID NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
     plan_id UUID REFERENCES public.plans(id) ON DELETE SET NULL,
-    wompi_reference TEXT,
+    gateway_reference TEXT, -- disponible para futura integracion
     amount DECIMAL(12,2),
     payment_date DATE,
     proof_url TEXT,

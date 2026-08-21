@@ -122,7 +122,7 @@ export function AdminBillingPage() {
           id: d.id as string,
           tenant_id: d.tenant_id as string,
           payment_id: d.payment_id as string | null,
-          wompi_transaction_id: d.wompi_transaction_id as string | null,
+          gateway_transaction_id: d.gateway_transaction_id as string | null,
           numero_factura: d.numero_factura as string,
           concepto: d.concepto as string,
           subtotal: d.subtotal as number,

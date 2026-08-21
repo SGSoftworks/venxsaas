@@ -9,7 +9,7 @@
 **Qué funciona:**
 - Página de aterrizaje profesional con planes de precios claros
 - Formulario de registro con validación Zod
-- Integración con Wompi Widget para pago
+- Registro manual de pago (admin aprueba)
 - Flujo completo: registro → pago → espera aprobación → dashboard
 
 **Problemas:**
@@ -25,7 +25,7 @@
 
 **Qué funciona:**
 - JWT validation robusta en todas las Edge Functions
-- Webhook Wompi con firma SHA-256 y TTL de 5 minutos
+- Pagos registrados manualmente por el administrador
 - RLS en todas las tablas críticas (tenants, payments, subscriptions)
 - CSP configurado en vercel.json
 - Service_role key nunca expuesta al frontend
@@ -128,22 +128,18 @@
 
 ---
 
-## 8. Pagos y Wompi (Puntuación: 8/10)
+## 8. Pagos (Puntuación: 8/10)
 
 **Qué funciona:**
-- Integración completa con Wompi Sandbox
-- Widget de checkout embebido
-- Verificación de firma en webhooks
-- Idempotencia en webhooks
-- Simulación de pagos para testing
-- Conciliación automática (cada 30 min vía CRON)
+- Registro manual de pagos (admin registra método, referencia, monto)
+- Facturación automática al aprobar pago
+- Columnas `gateway_transaction_id` y `gateway_reference` en BD para futura integración
 
 **Problemas:**
-- Sin manejo de reembolsos desde el dashboard
-- `renew-subscriptions` requiere INTERNAL_API_KEY (riesgo si se filtra)
-- Sin soporte para otros métodos de pago (PSE, Nequi, Daviplata)
+- Sin procesamiento automatizado de pagos (todo es manual)
+- Sin pasarela de pagos integrada
 
-**Veredicto:** Listo para producción en sandbox. Migrar a producción de Wompi requiere verificar la configuración de llaves.
+**Veredicto:** Integración Wompi removida. Pagos se registran manualmente. Las columnas `gateway_transaction_id` y `gateway_reference` en la BD se conservan para futura integración con cualquier pasarela.
 
 ---
 
@@ -231,7 +227,7 @@
 | Ventas y Caja | 8/10 |
 | Facturación SaaS | 9/10 |
 | Administración de Clientes | 8/10 |
-| Pagos y Wompi | 8/10 |
+| Pagos | 8/10 |
 | Suscripciones y Renovaciones | 7/10 |
 | POS Web | 7/10 |
 | Performance y Bundle | 6/10 |
@@ -245,7 +241,7 @@
 - [x] ~~CORS configurado para Netlify~~ ✅
 - [x] ~~RLS en pending_signups y empresas~~ ✅
 - [x] ~~Seed ejecutado con datos demo~~ ✅
-- [ ] Migrar Wompi de Sandbox a Producción (cambiar WOMPI_PRODUCTION=true y llaves)
+- [ ] Integrar pasarela de pagos (Wompi u otra) cuando se requiera procesamiento automatizado
 - [ ] Configurar Vercel CRON_SECRET en producción
 
 ### Alta prioridad

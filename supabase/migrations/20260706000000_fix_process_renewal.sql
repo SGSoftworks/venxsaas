@@ -2,7 +2,7 @@
 CREATE OR REPLACE FUNCTION process_renewal(
     p_tenant_id UUID,
     p_payment_id UUID,
-    p_wompi_transaction_id TEXT
+    p_gateway_transaction_id TEXT
 )
 RETURNS VOID
 SECURITY DEFINER
@@ -12,7 +12,7 @@ AS $$
 BEGIN
     UPDATE public.payments
     SET status = 'approved',
-        wompi_transaction_id = p_wompi_transaction_id,
+        gateway_transaction_id = p_gateway_transaction_id,
         updated_at = NOW()
     WHERE id = p_payment_id
       AND status != 'approved';
@@ -35,7 +35,7 @@ BEGIN
     SELECT id, p_tenant_id, 'renewed',
            jsonb_build_object(
                'payment_id', p_payment_id,
-               'wompi_transaction_id', p_wompi_transaction_id,
+               'gateway_transaction_id', p_gateway_transaction_id,
                'fecha', CURRENT_DATE
            )
     FROM public.subscriptions

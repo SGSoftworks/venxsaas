@@ -1,34 +1,35 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, lazy, Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/useAuthStore'
 import { useUIStore } from '@/store/useUIStore'
 import { AuthGuard } from '@/components/auth/AuthGuard'
 import { GerenteGuard } from '@/components/auth/GerenteGuard'
+import { AdminNegocioGuard } from '@/components/auth/AdminNegocioGuard'
 import { LandingPage } from '@/components/landing/LandingPage'
 import { LoginPage } from '@/components/auth/LoginPage'
-import { PaymentPage } from '@/components/payment/PaymentPage'
-import { CheckoutPage } from '@/components/payment/CheckoutPage'
-import { PaymentSuccess } from '@/components/payment/PaymentSuccess'
-import { PaymentPending } from '@/components/payment/PaymentPending'
-import { PaymentFailed } from '@/components/payment/PaymentFailed'
 import { PendingApprovalPage } from '@/components/pending/PendingApprovalPage'
 import { ChangePasswordPage } from '@/components/auth/ChangePasswordPage'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
+import { ErrorBoundary } from '@/components/error/ErrorBoundary'
+import { NotFoundPage } from '@/components/error/NotFoundPage'
+import { ForbiddenPage } from '@/components/error/ForbiddenPage'
+import { ServerErrorPage } from '@/components/error/ServerErrorPage'
 import iconApp from '@/assets/branding/icon-app.png'
-import { DashboardHome } from '@/components/dashboard/DashboardHome'
-import { SubscriptionPage } from '@/components/dashboard/SubscriptionPage'
-import { BranchesPage } from '@/components/dashboard/BranchesPage'
-import { InvoicesPage } from '@/components/dashboard/InvoicesPage'
-import { AnalyticsPage } from '@/components/dashboard/AnalyticsPage'
-import { ConfigPage } from '@/components/dashboard/ConfigPage'
-import { InventoryPage } from '@/components/dashboard/InventoryPage'
 import { AdminLayout } from '@/components/admin/AdminLayout'
 import { AdminDashboard } from '@/components/admin/AdminDashboard'
-import { AdminClients } from '@/components/admin/AdminClients'
-import { AdminPayments } from '@/components/admin/AdminPayments'
-import { AdminBillingPage } from '@/components/admin/AdminBillingPage'
-import { AdminAnalyticsPage } from '@/components/admin/AdminAnalyticsPage'
-import { AdminRequests } from '@/components/admin/AdminRequests'
+
+const AdminPayments = lazy(() => import('@/components/admin/AdminPayments').then(m => ({ default: m.AdminPayments })))
+const AdminBillingPage = lazy(() => import('@/components/admin/AdminBillingPage').then(m => ({ default: m.AdminBillingPage })))
+const AdminAnalyticsPage = lazy(() => import('@/components/admin/AdminAnalyticsPage').then(m => ({ default: m.AdminAnalyticsPage })))
+const AdminRequests = lazy(() => import('@/components/admin/AdminRequests').then(m => ({ default: m.AdminRequests })))
+const AdminClients = lazy(() => import('@/components/admin/AdminClients').then(m => ({ default: m.AdminClients })))
+const DashboardHome = lazy(() => import('@/components/dashboard/DashboardHome').then(m => ({ default: m.DashboardHome })))
+const SubscriptionPage = lazy(() => import('@/components/dashboard/SubscriptionPage').then(m => ({ default: m.SubscriptionPage })))
+const BranchesPage = lazy(() => import('@/components/dashboard/BranchesPage').then(m => ({ default: m.BranchesPage })))
+const InvoicesPage = lazy(() => import('@/components/dashboard/InvoicesPage').then(m => ({ default: m.InvoicesPage })))
+const AnalyticsPage = lazy(() => import('@/components/dashboard/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })))
+const ConfigPage = lazy(() => import('@/components/dashboard/ConfigPage').then(m => ({ default: m.ConfigPage })))
+const InventoryPage = lazy(() => import('@/components/dashboard/InventoryPage').then(m => ({ default: m.InventoryPage })))
 import { TerminosPage } from '@/components/legal/TerminosPage'
 import { PrivacidadPage } from '@/components/legal/PrivacidadPage'
 import { CookiesPage } from '@/components/legal/CookiesPage'
@@ -36,10 +37,9 @@ import { ReembolsosPage } from '@/components/legal/ReembolsosPage'
 import { AceptableUsePage } from '@/components/legal/AceptableUsePage'
 import { CumplimientoPage } from '@/components/legal/CumplimientoPage'
 import { MetodosPagoPage } from '@/components/legal/MetodosPagoPage'
-import { NotFoundPage } from '@/components/error/NotFoundPage'
-import { ForbiddenPage } from '@/components/error/ForbiddenPage'
-import { ServerErrorPage } from '@/components/error/ServerErrorPage'
 import { Loader2 } from 'lucide-react'
+import { ReconnectionOverlay } from '@/components/shared/ReconnectionOverlay'
+import { startConnectionGuard } from '@/lib/supabase/connectionGuard'
 
 function FullScreenLoader() {
   return (
@@ -87,21 +87,22 @@ export default function App() {
     initialize().then(() => setReady(true))
   }, [initialize])
 
+  useEffect(() => {
+    startConnectionGuard()
+  }, [])
+
   if (!ready || !initialized || loading) return <FullScreenLoader />
 
   return (
     <>
+      <ReconnectionOverlay />
+      <ErrorBoundary>
+      <Suspense fallback={<FullScreenLoader />}>
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/cambiar-contrasena" element={<ChangePasswordPage />} />
-        <Route path="/pago" element={<PaymentPage />} />
         <Route path="/registro" element={<Navigate to="/" replace />} />
-
-        <Route path="/checkout/pay/:reference" element={<CheckoutPage />} />
-        <Route path="/payment/success/:reference" element={<PaymentSuccess />} />
-        <Route path="/payment/pending/:reference" element={<PaymentPending />} />
-        <Route path="/payment/failed/:reference" element={<PaymentFailed />} />
         <Route path="/esperando-aprobacion" element={<PendingApprovalPage />} />
 
         <Route path="/legal/terminos" element={<TerminosPage />} />
@@ -117,11 +118,11 @@ export default function App() {
         }>
           <Route index element={<DashboardHome />} />
           <Route path="facturas" element={<InvoicesPage />} />
-          <Route path="analitica" element={<AnalyticsPage />} />
+          <Route path="analitica" element={<AdminNegocioGuard><AnalyticsPage /></AdminNegocioGuard>} />
           <Route path="suscripcion" element={<SubscriptionPage />} />
-          <Route path="sucursales" element={<BranchesPage />} />
-          <Route path="configuracion" element={<ConfigPage />} />
-          <Route path="inventario" element={<InventoryPage />} />
+          <Route path="sucursales" element={<AdminNegocioGuard><BranchesPage /></AdminNegocioGuard>} />
+          <Route path="configuracion" element={<AdminNegocioGuard><ConfigPage /></AdminNegocioGuard>} />
+          <Route path="inventario" element={<AdminNegocioGuard><InventoryPage /></AdminNegocioGuard>} />
         </Route>
 
         <Route path="/admin" element={
@@ -139,6 +140,8 @@ export default function App() {
         <Route path="/error/500" element={<ServerErrorPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
+      </Suspense>
+      </ErrorBoundary>
       <Toasts />
     </>
   )

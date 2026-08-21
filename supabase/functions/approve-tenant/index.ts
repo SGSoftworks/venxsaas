@@ -11,7 +11,7 @@ serve(async (req) => {
     if (auth instanceof Response) return auth
 
     const body = await req.json()
-    const { tenantId, paymentProofId, wompiTransactionId, amount: bodyAmount } = body
+    const { tenantId, paymentProofId, transactionId, amount: bodyAmount } = body
 
     if (!tenantId) {
       return new Response(JSON.stringify({ error: 'tenantId requerido' }), {
@@ -27,15 +27,15 @@ serve(async (req) => {
 
     // Read payment proof data if provided
     let proofAmount = bodyAmount || 0
-    let proofRef = wompiTransactionId || ''
+    let proofRef = transactionId || ''
     if (paymentProofId) {
       const { data: proof } = await supabaseAdmin
         .from('payment_proofs')
-        .select('wompi_reference, amount')
+        .select('reference, amount')
         .eq('id', paymentProofId)
         .maybeSingle()
       if (proof) {
-        proofRef = proofRef || proof.wompi_reference || ''
+        proofRef = proofRef || proof.reference || ''
         proofAmount = bodyAmount || proof.amount || proofAmount
       }
     }
@@ -135,8 +135,8 @@ serve(async (req) => {
       .from('payments')
       .insert({
         tenant_id: tenantId,
-        wompi_transaction_id: proofRef || null,
-        wompi_reference: proofRef || null,
+        gateway_transaction_id: proofRef || null,
+        gateway_reference: proofRef || null,
         amount: proofAmount || 0,
         currency: 'COP',
         status: 'approved',

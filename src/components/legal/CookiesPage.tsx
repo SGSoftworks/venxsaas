@@ -61,7 +61,7 @@ export function CookiesPage() {
         </p>
         <ul className="list-disc pl-5 space-y-1.5 text-sm text-slate-600 leading-relaxed">
           <li><span className="font-medium text-slate-700">Supabase:</span> proveedor de infraestructura de base de datos y autenticación. Instala cookies técnicas necesarias para gestionar las sesiones de los usuarios y mantener la seguridad de la plataforma.</li>
-          <li><span className="font-medium text-slate-700">Wompi:</span> pasarela de pagos de Bancolombia. Los pagos se procesan en una ventana o redirección a los servidores de Wompi, los cuales operan bajo su propia política de cookies y privacidad.</li>
+          <li><span className="font-medium text-slate-700">Pasarela de pagos:</span> Los pagos se procesan en una ventana o redirección a los servidores de la pasarela, los cuales operan bajo su propia política de cookies y privacidad.</li>
         </ul>
         <p className="text-sm text-slate-600 leading-relaxed mt-3">
           VenxPOS no utiliza cookies de rastreo publicitario, redes sociales ni herramientas de

@@ -9,8 +9,8 @@ interface InvoiceData {
   total: number
   moneda: string
   created_at: string
-  wompi_transaction_id: string | null
-  wompi_reference: string | null
+  gateway_transaction_id: string | null
+  gateway_reference: string | null
   metodo_pago: string
   tenant_nombre: string
   tenant_nit: string
@@ -248,11 +248,11 @@ function drawClientSection(ctx: Ctx, data: InvoiceData) {
 function drawPaymentSection(ctx: Ctx, data: InvoiceData) {
   const left = [
     data.metodo_pago ? `Método: ${data.metodo_pago}` : null,
-    data.wompi_reference ? `Referencia: ${data.wompi_reference}` : null,
+    data.gateway_reference ? `Referencia: ${data.gateway_reference}` : null,
   ].filter(Boolean) as string[]
 
   const right = [
-    data.wompi_transaction_id ? `ID Transacción: ${data.wompi_transaction_id}` : null,
+    data.gateway_transaction_id ? `ID Transacción: ${data.gateway_transaction_id}` : null,
   ].filter(Boolean) as string[]
   right.push(`Fecha de pago: ${formatInvoiceDate(data.created_at)}`)
 

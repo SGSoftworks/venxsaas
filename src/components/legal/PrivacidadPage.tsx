@@ -38,7 +38,7 @@ export function PrivacidadPage() {
         </ul>
         <p className="text-sm text-slate-600 leading-relaxed mt-3">
           VenxPOS no almacena números de tarjeta de crédito ni débito, CVV ni fechas de
-          vencimiento. Estos datos son gestionados exclusivamente por Wompi (Bancolombia S.A.)
+          vencimiento. Estos datos son gestionados exclusivamente por la pasarela de pagos.
           bajo sus propios estándares de seguridad PCI-DSS.
         </p>
       </Section>

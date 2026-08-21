@@ -211,7 +211,7 @@ const faqItems = [
   {
     question: '¿Qué métodos de pago aceptan?',
     answer:
-      'Procesamos todos nuestros pagos a través de Wompi, lo que nos permite aceptar PSE, tarjetas (crédito/débito), Nequi y Daviplata, además de transferencia bancaria y Bre-B. El método de pago puede variar según la negociación. Todos los pagos generan una factura electrónica formal.',
+      'Aceptamos PSE, tarjetas (crédito/débito), Nequi y Daviplata, además de transferencia bancaria y Bre-B. El método de pago puede variar según la negociación. Todos los pagos generan una factura electrónica formal.',
   },
   {
     question: '¿Mis datos están seguros?',
@@ -311,7 +311,7 @@ const faqItems = [
   {
     question: '¿Qué tecnologías utiliza VenxPOS?',
     answer:
-      'VenxPOS está construido con tecnologías modernas: React, TypeScript, TailwindCSS, Supabase para base de datos y autenticación, Wompi para procesamiento de pagos y está alojado en infraestructura AWS. El Sistema POS es una aplicación web independiente accesible desde cualquier navegador.',
+      'VenxPOS está construido con tecnologías modernas: React, TypeScript, TailwindCSS, Supabase para base de datos y autenticación, y está alojado en infraestructura AWS. El Sistema POS es una aplicación web independiente accesible desde cualquier navegador.',
   },
   {
     question: '¿Qué ocurre si cancelo mi suscripción? ¿Puedo volver después?',

@@ -65,7 +65,7 @@ export async function notifyPagoRechazado(paymentId: string, tenantId: string, m
     pagoRechazadoHtml({
       negocio: tenant.nombre,
       monto: fmtCOP(Number(payment.amount)),
-      referencia: payment.wompi_reference || payment.wompi_transaction_id || '—',
+      referencia: payment.gateway_reference || payment.gateway_transaction_id || '—',
       motivo,
     }),
   )

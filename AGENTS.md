@@ -8,7 +8,7 @@
 - **Icons**: Lucide React
 - **Animaciones**: GSAP + ScrollTrigger (solo landing), Motion (microinteracciones)
 - **Backend**: Supabase (Auth, Database, Edge Functions)
-- **Pagos**: Wompi Sandbox API
+- **Pagos**: Manual (administrador registra pagos)
 - **Email**: Resend
 - **Hosting**: Vercel (SPA rewrites)
 
@@ -48,11 +48,8 @@
 - Manejar CORS con `corsHeaders`
 - Retornar JSON con status codes apropiados
 
-### Wompi
-- Llave pública en frontend (solo para Widget)
-- Llaves privadas SOLO en Edge Functions
-- Verificar firma de webhooks SIEMPRE
-- Nunca activar tenant desde el frontend
+### Pagos (futura integración)
+- La integración con Wompy se eliminó. Las columnas `gateway_transaction_id` y `gateway_reference` en la BD se conservan para futura integración con cualquier pasarela.
 
 ## Estructura de archivos
 

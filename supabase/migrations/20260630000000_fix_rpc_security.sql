@@ -47,7 +47,7 @@ $$;
 CREATE OR REPLACE FUNCTION activate_tenant(
     p_tenant_id UUID,
     p_payment_id UUID,
-    p_wompi_transaction_id TEXT,
+    p_gateway_transaction_id TEXT,
     p_payment_source_id TEXT DEFAULT ''
 )
 RETURNS VOID
@@ -67,7 +67,7 @@ BEGIN
 
   UPDATE public.payments SET
     status = 'approved',
-    wompi_transaction_id = p_wompi_transaction_id,
+    gateway_transaction_id = p_gateway_transaction_id,
     updated_at = NOW()
   WHERE id = p_payment_id;
 
@@ -98,7 +98,7 @@ BEGIN
     INSERT INTO public.subscription_events (subscription_id, tenant_id, tipo, metadata)
     VALUES (
         v_subscription_id, p_tenant_id, 'activated',
-        jsonb_build_object('payment_id', p_payment_id, 'transaction_id', p_wompi_transaction_id)
+        jsonb_build_object('payment_id', p_payment_id, 'transaction_id', p_gateway_transaction_id)
     );
   END IF;
 END;
@@ -125,7 +125,7 @@ BEGIN
 
   UPDATE public.payments
   SET status = 'approved',
-      wompi_transaction_id = p_transaction_id,
+      gateway_transaction_id = p_transaction_id,
       updated_at = NOW()
   WHERE id = p_payment_id AND status != 'approved';
 
@@ -174,7 +174,7 @@ $$;
 CREATE OR REPLACE FUNCTION process_renewal(
     p_tenant_id UUID,
     p_payment_id UUID,
-    p_wompi_transaction_id TEXT
+    p_gateway_transaction_id TEXT
 )
 RETURNS VOID
 LANGUAGE plpgsql
@@ -193,7 +193,7 @@ BEGIN
   WHERE tenant_id = p_tenant_id;
 
   INSERT INTO public.subscription_events (subscription_id, tenant_id, tipo, metadata)
-  SELECT id, p_tenant_id, 'renewed', jsonb_build_object('payment_id', p_payment_id, 'transaction_id', p_wompi_transaction_id)
+  SELECT id, p_tenant_id, 'renewed', jsonb_build_object('payment_id', p_payment_id, 'transaction_id', p_gateway_transaction_id)
   FROM public.subscriptions WHERE tenant_id = p_tenant_id;
 END;
 $$;
@@ -203,7 +203,7 @@ CREATE OR REPLACE FUNCTION process_plan_change(
     p_tenant_id UUID,
     p_payment_id UUID,
     p_new_plan_id UUID,
-    p_wompi_transaction_id TEXT
+    p_gateway_transaction_id TEXT
 )
 RETURNS VOID
 LANGUAGE plpgsql
@@ -223,7 +223,7 @@ BEGIN
   SELECT id, p_tenant_id, 'plan_changed', jsonb_build_object(
     'new_plan_id', p_new_plan_id,
     'payment_id', p_payment_id,
-    'transaction_id', p_wompi_transaction_id
+    'transaction_id', p_gateway_transaction_id
   )
   FROM public.subscriptions WHERE tenant_id = p_tenant_id;
 END;

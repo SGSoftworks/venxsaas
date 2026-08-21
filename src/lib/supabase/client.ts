@@ -10,4 +10,12 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
     detectSessionInUrl: true,
     storageKey: 'sb-beacnoxukkoellhecofm-auth-token',
   },
+  global: {
+    fetch: (url, init) => {
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), 15_000)
+      const merged = { ...init, signal: controller.signal }
+      return fetch(url, merged).finally(() => clearTimeout(timeout))
+    },
+  },
 })

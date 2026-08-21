@@ -11,14 +11,11 @@ import {
   RefreshCw,
   Clock,
   Store,
-  CreditCard,
-  ArrowRightLeft,
 } from 'lucide-react'
-import type { SubscriptionRequest, Plan } from '@/types'
 
-type FilterKey = 'pendientes' | 'aprobados' | 'renovaciones' | 'cambios_plan' | 'todos'
+type FilterKey = 'pendientes' | 'aprobados' | 'todos'
 
-type RowSource = 'pending_approval' | 'approved_today' | 'renovacion' | 'cambio_plan' | 'subscription_request' | 'RENOVACION' | 'CAMBIO_PLAN'
+type RowSource = 'pending_approval' | 'approved_today'
 
 interface ApprovalRow {
   id: string
@@ -27,47 +24,35 @@ interface ApprovalRow {
   cliente: string
   email: string
   planNombre: string
-  planNuevoNombre: string | null
   planPrecioInicial: number
-  wompiRef: string
+  reference: string
   valor: number
   fechaSolicitud: string
   estado: string
   proofId: string | null
   source: RowSource
   tipo: string
-  requestId: string | null
 }
 
 interface AprobarForm {
   row: ApprovalRow
-  wompiTransactionId: string
+  transactionId: string
   amount: number
 }
 
 const TIPO_LABEL: Record<string, string> = {
   pending_approval: 'Activación',
   approved_today: 'Aprobado',
-  renovacion: 'Renovación',
-  cambio_plan: 'Cambio de plan',
-  subscription_request: 'Solicitud',
-  RENOVACION: 'Renovación',
-  CAMBIO_PLAN: 'Cambio de plan',
 }
 
 const TIPO_BADGE: Record<string, string> = {
   pending_approval: 'bg-sky-100 text-sky-700 border-sky-200',
   approved_today: 'bg-green-100 text-green-700 border-green-200',
-  renovacion: 'bg-amber-100 text-amber-700 border-amber-200',
-  cambio_plan: 'bg-purple-100 text-purple-700 border-purple-200',
-  RENOVACION: 'bg-amber-100 text-amber-700 border-amber-200',
-  CAMBIO_PLAN: 'bg-purple-100 text-purple-700 border-purple-200',
 }
 
 export function AdminRequests() {
   const { addToast } = useUIStore()
   const [rows, setRows] = useState<ApprovalRow[]>([])
-  const [allPlans, setAllPlans] = useState<Plan[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
@@ -77,63 +62,6 @@ export function AdminRequests() {
   const [aprobarForm, setAprobarForm] = useState<AprobarForm | null>(null)
   const [aprobarSubmitting, setAprobarSubmitting] = useState(false)
 
-  const fetchPlans = useCallback(async () => {
-    const { data } = await supabase.from('plans').select('*').eq('activo', true)
-    if (data) setAllPlans(data as Plan[])
-  }, [])
-
-  const loadSubscriptionRequests = async (rows: ApprovalRow[], tipo: string, estados?: string[]) => {
-    let query = supabase
-      .from('subscription_requests')
-      .select('*, tenants!inner(*)')
-      .eq('tipo', tipo)
-    if (estados && estados.length > 0) {
-      query = query.in('estado', estados)
-    }
-    const { data: items } = await query.order('created_at', { ascending: false })
-    if (!items || items.length === 0) return
-
-    const planIdsSet = new Set<string>()
-    const reqs = items as Record<string, unknown>[]
-    for (const r of reqs) {
-      const t = r.tenants as Record<string, unknown> | null
-      if (t?.plan_id) planIdsSet.add(t.plan_id as string)
-      if (r.plan_actual_id) planIdsSet.add(r.plan_actual_id as string)
-      if (r.plan_nuevo_id) planIdsSet.add(r.plan_nuevo_id as string)
-    }
-    const { data: plansData } = [...planIdsSet].length > 0
-      ? await supabase.from('plans').select('*').in('id', [...planIdsSet])
-      : { data: [] }
-    const plansMap = new Map((plansData || []).map((p: Record<string, unknown>) => [p.id, p]))
-
-    for (const r of reqs) {
-      const t = r.tenants as Record<string, unknown> | null
-      const planActual = r.plan_actual_id ? plansMap.get(r.plan_actual_id as string) : null
-      const planNuevo = r.plan_nuevo_id ? plansMap.get(r.plan_nuevo_id as string) : null
-      const tenantPlan = t?.plan_id ? plansMap.get(t.plan_id as string) : null
-      const st = r.estado as string
-      const isPlanChange = tipo === 'CAMBIO_PLAN'
-      rows.push({
-        id: `${isPlanChange ? 'cp' : 'sr'}-${r.id}`,
-        tenantId: r.tenant_id as string,
-        clientId: (t?.client_id as string) || null,
-        cliente: (t?.nombre_negocio as string) || '\u2014',
-        email: (t?.email_propietario as string) || '\u2014',
-        planNombre: (planActual as Record<string, unknown> | null)?.nombre as string || (tenantPlan as Record<string, unknown> | null)?.nombre as string || '\u2014',
-        planNuevoNombre: (planNuevo as Record<string, unknown> | null)?.nombre as string || null,
-        planPrecioInicial: ((planNuevo || tenantPlan) as Record<string, unknown> | null)?.precio_mensual as number || 0,
-        wompiRef: '\u2014',
-        valor: ((planNuevo || tenantPlan) as Record<string, unknown> | null)?.precio_mensual as number || 0,
-        fechaSolicitud: r.created_at as string,
-        estado: st,
-        proofId: null,
-        source: isPlanChange ? 'cambio_plan' as const : 'RENOVACION' as const,
-        tipo: TIPO_LABEL[tipo] || tipo,
-        requestId: r.id as string,
-      })
-    }
-  }
-
   const fetchData = useCallback(async () => {
     setLoading(true)
     setError(null)
@@ -142,8 +70,6 @@ export function AdminRequests() {
 
       const showActivacionesPendientes = filterKey === 'pendientes' || filterKey === 'todos'
       const showActivacionesAprobadas = filterKey === 'aprobados' || filterKey === 'todos'
-      const showRenovaciones = filterKey === 'pendientes' || filterKey === 'renovaciones' || filterKey === 'todos'
-      const showCambiosPlan = filterKey === 'pendientes' || filterKey === 'cambios_plan' || filterKey === 'todos'
 
       if (showActivacionesPendientes) {
         const { data: pendingData, error: pendingErr } = await supabase
@@ -182,16 +108,14 @@ export function AdminRequests() {
               cliente: t.nombre_negocio as string,
               email: t.email_propietario as string,
               planNombre: (plan as Record<string, unknown> | null)?.nombre as string || '\u2014',
-              planNuevoNombre: null,
               planPrecioInicial: ((plan as Record<string, unknown> | null)?.precio_inicial as number) || 0,
-              wompiRef: (proof?.wompi_reference as string) || '\u2014',
+              reference: (proof?.reference as string) || '\u2014',
               valor: (proof?.amount as number) || 0,
               fechaSolicitud: t.created_at as string,
               estado: 'pending_approval',
               proofId: (proof?.id as string) || null,
               source: 'pending_approval' as const,
               tipo: 'Activación',
-              requestId: null,
             })
           }
         }
@@ -235,29 +159,17 @@ export function AdminRequests() {
               cliente: (tenant?.nombre_negocio as string) || '\u2014',
               email: (tenant?.email_propietario as string) || '\u2014',
               planNombre: (plan as Record<string, unknown> | null)?.nombre as string || '\u2014',
-              planNuevoNombre: null,
               planPrecioInicial: ((plan as Record<string, unknown> | null)?.precio_inicial as number) || 0,
-              wompiRef: (p.wompi_reference as string) || '\u2014',
+              reference: (p.reference as string) || '\u2014',
               valor: (p.amount as number) || 0,
               fechaSolicitud: (p.reviewed_at as string) || (p.created_at as string),
               estado: 'approved',
               proofId: p.id as string,
               source: 'approved_today' as const,
               tipo: 'Aprobado',
-              requestId: null,
             })
           }
         }
-      }
-
-      if (showRenovaciones) {
-        const estados = filterKey === 'pendientes' ? ['pendiente'] : undefined
-        await loadSubscriptionRequests(rows, 'RENOVACION', estados)
-      }
-
-      if (showCambiosPlan) {
-        const estados = filterKey === 'pendientes' ? ['pendiente'] : undefined
-        await loadSubscriptionRequests(rows, 'CAMBIO_PLAN', estados)
       }
 
       setRows(rows)
@@ -267,10 +179,6 @@ export function AdminRequests() {
       setLoading(false)
     }
   }, [filterKey])
-
-  useEffect(() => {
-    fetchPlans()
-  }, [fetchPlans])
 
   useEffect(() => {
     fetchData()
@@ -284,15 +192,9 @@ export function AdminRequests() {
 
       if (row.source === 'pending_approval') {
         const { error: fnError } = await supabase.functions.invoke('approve-tenant', {
-          body: { tenantId: row.tenantId, paymentProofId: row.proofId },
+          body: { tenantId: row.tenantId, paymentProofId: row.proofId, transactionId: aprobarForm.transactionId },
         })
         if (fnError) throw fnError
-      } else if (row.source === 'RENOVACION') {
-        const { error: rpcErr } = await supabase.rpc('approve_renewal', { p_request_id: row.requestId })
-        if (rpcErr) throw rpcErr
-      } else if (row.source === 'CAMBIO_PLAN' || row.source === 'cambio_plan') {
-        const { error: rpcErr } = await supabase.rpc('approve_plan_change', { p_request_id: row.requestId })
-        if (rpcErr) throw rpcErr
       }
 
       addToast('success', `"${aprobarForm.row.cliente}" aprobado`)
@@ -321,12 +223,6 @@ export function AdminRequests() {
             .update({ status: 'rejected' })
             .eq('id', row.proofId)
         }
-      } else if (row.requestId) {
-        const { error: upError } = await supabase
-          .from('subscription_requests')
-          .update({ estado: 'rechazada', updated_at: new Date().toISOString() })
-          .eq('id', row.requestId)
-        if (upError) throw upError
       }
 
       addToast('success', `"${row.cliente}" rechazado`)
@@ -341,7 +237,7 @@ export function AdminRequests() {
   const openAprobarForm = (row: ApprovalRow) => {
     setAprobarForm({
       row,
-      wompiTransactionId: row.wompiRef !== '\u2014' ? row.wompiRef : '',
+      transactionId: row.reference !== '\u2014' ? row.reference : '',
       amount: row.valor || row.planPrecioInicial,
     })
   }
@@ -356,8 +252,6 @@ export function AdminRequests() {
   const filterTabs: { key: FilterKey; label: string }[] = [
     { key: 'pendientes', label: 'Pendientes' },
     { key: 'aprobados', label: 'Aprobados' },
-    { key: 'renovaciones', label: 'Renovaciones' },
-    { key: 'cambios_plan', label: 'Cambios de plan' },
     { key: 'todos', label: 'Todos' },
   ]
 
@@ -434,11 +328,6 @@ export function AdminRequests() {
                   <th className="text-left text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-4 py-3 hidden md:table-cell">
                     Plan
                   </th>
-                  {(filterKey === 'cambios_plan' || filterKey === 'todos') && (
-                    <th className="text-left text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-4 py-3 hidden md:table-cell">
-                      Nuevo plan
-                    </th>
-                  )}
                   <th className="text-left text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-4 py-3">
                     Valor
                   </th>
@@ -485,11 +374,7 @@ export function AdminRequests() {
                         <td className="px-4 py-2.5">
                           <div className="flex items-center gap-2.5">
                             <div className="w-7 h-7 rounded-lg bg-brand-50 flex items-center justify-center shrink-0">
-                              {row.source === 'cambio_plan' ? (
-                                <ArrowRightLeft className="w-3.5 h-3.5 text-brand-600" />
-                              ) : (
-                                <Store className="w-3.5 h-3.5 text-brand-600" />
-                              )}
+                              <Store className="w-3.5 h-3.5 text-brand-600" />
                             </div>
                             <div>
                               <span className="text-[13px] font-semibold text-slate-800">{row.cliente}</span>
@@ -511,13 +396,6 @@ export function AdminRequests() {
                         <td className="px-4 py-2.5 hidden md:table-cell">
                           <span className="text-[12px] text-slate-600">{row.planNombre}</span>
                         </td>
-                        {(filterKey === 'cambios_plan' || filterKey === 'todos') && (
-                          <td className="px-4 py-2.5 hidden md:table-cell">
-                            <span className="text-[12px] font-semibold text-brand-600">
-                              {row.planNuevoNombre || '\u2014'}
-                            </span>
-                          </td>
-                        )}
                         <td className="px-4 py-2.5">
                           <span className="text-[12px] font-semibold text-slate-800 tabular-nums">
                             {row.valor > 0 ? formatCurrency(row.valor) : '\u2014'}
@@ -585,14 +463,14 @@ export function AdminRequests() {
             {aprobarForm.row.source === 'pending_approval' && (
               <>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-slate-700">ID Transacción Wompi</label>
-                  <input
-                    type="text"
-                    value={aprobarForm.wompiTransactionId}
-                    onChange={e => setAprobarForm({ ...aprobarForm, wompiTransactionId: e.target.value })}
-                    className="h-10 px-3 rounded-lg border border-slate-300 text-sm focus:outline-none focus:border-brand-500"
-                    placeholder="ID de la transacción en Wompi"
-                  />
+                    <label className="text-xs font-semibold text-slate-700">ID de Transacción</label>
+                    <input
+                      type="text"
+                      value={aprobarForm.transactionId}
+                      onChange={e => setAprobarForm({ ...aprobarForm, transactionId: e.target.value })}
+                      className="w-full px-3 py-1.5 border border-slate-200 rounded-md text-[13px] focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-100 bg-white"
+                      placeholder="ID de la transacción"
+                    />
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-semibold text-slate-700">Monto (COP)</label>
@@ -623,12 +501,6 @@ export function AdminRequests() {
                 <span>Plan actual</span>
                 <span className="font-medium text-slate-700">{aprobarForm.row.planNombre}</span>
               </div>
-              {aprobarForm.row.planNuevoNombre && (
-                <div className="flex justify-between text-slate-500">
-                  <span>Nuevo plan</span>
-                  <span className="font-medium text-brand-600">{aprobarForm.row.planNuevoNombre}</span>
-                </div>
-              )}
               <div className="flex justify-between text-slate-500">
                 <span>Valor</span>
                 <span className="font-semibold text-slate-700">{formatCurrency(aprobarForm.amount)}</span>

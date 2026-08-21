@@ -1,15 +1,12 @@
 import { useEffect, useState, useRef } from 'react'
 import { useAuthStore } from '@/store/useAuthStore'
-import { useUIStore } from '@/store/useUIStore'
 import { supabase } from '@/lib/supabase/client'
 import { formatCurrency, formatDate, formatDateShort, getStatusLabel, daysUntil } from '@/lib/utils'
 import type { Tenant, Payment, Plan, FacturaSaas, Subscription } from '@/types'
 import { EmptyState } from '@/components/ui/EmptyState'
-import { AppModal } from '@/components/ui/AppModal'
 import {
   Loader2,
   AlertCircle,
-  X,
   Building2,
   Users,
   Receipt,
@@ -23,12 +20,9 @@ import {
   DollarSign,
   Printer,
   MessageCircle,
-  RefreshCw,
   Clock,
-  Send,
-  ArrowRightLeft,
 } from 'lucide-react'
-import { buildWhatsAppUrl, APP_CONFIG } from '@/lib/appConfig'
+import { buildWhatsAppUrl } from '@/lib/appConfig'
 
 interface SubscriptionData {
   branchCount: number
@@ -288,257 +282,37 @@ function PlanHeaderCard({
   )
 }
 
-function QuickActions({
-  tenant,
-  tenantId,
-  plan,
-  subscription,
-  clientId,
-  allPlans,
-  onCancel,
-  onRefresh,
-  actionLoading,
-}: {
-  tenant: { nombre_negocio?: string; email_propietario?: string } | null
-  tenantId: string | null
-  plan: { nombre?: string; id?: string } | null
-  subscription: { proximo_cobro?: string | null; estado?: string } | null
-  clientId?: string | null
-  allPlans: Plan[]
-  onCancel: () => void
-  onRefresh: () => void
-  actionLoading: boolean
-}) {
-  const { addToast } = useUIStore()
-  const [showRenewal, setShowRenewal] = useState(false)
-  const [showChangePlan, setShowChangePlan] = useState(false)
-  const [selectedNewPlanId, setSelectedNewPlanId] = useState('')
-  const [submitting, setSubmitting] = useState(false)
-  const [pendingRenewalReq, setPendingRenewalReq] = useState<boolean>(false)
-  const [pendingChangeReq, setPendingChangeReq] = useState<boolean>(false)
-
-  useEffect(() => {
-    if (!tenantId) return
-    supabase.from('subscription_requests')
-      .select('id, estado, tipo')
-      .eq('tenant_id', tenantId)
-      .eq('estado', 'pendiente')
-      .then(({ data }) => {
-        if (!data) return
-        setPendingRenewalReq(data.some(r => r.tipo === 'RENOVACION'))
-        setPendingChangeReq(data.some(r => r.tipo === 'CAMBIO_PLAN'))
-      })
-  }, [tenantId])
-
-  const daysLeft = daysUntil(subscription?.proximo_cobro ?? null)
-  const isExpired = daysLeft < 0
-  const canRenew = isExpired || (daysLeft >= 0 && daysLeft <= 5)
-
-  const handleRenewalSubmit = async () => {
-    if (!tenantId || !tenant) return
-    setSubmitting(true)
-    try {
-      const { error: insErr } = await supabase
-        .from('subscription_requests')
-        .insert({
-          tenant_id: tenantId,
-          tipo: 'RENOVACION',
-          plan_actual_id: plan?.id || null,
-        })
-      if (insErr) throw insErr
-
-      window.open(buildWhatsAppUrl(
-        `Hola. Deseo renovar mi suscripcion de VenxPOS.\n\nEmpresa: ${tenant?.nombre_negocio || ''}\nPlan actual: ${plan?.nombre || ''}\nID Cliente: ${clientId || 'N/A'}\n\nHe creado una solicitud de renovacion en la plataforma.\n\nQuedo atento a la validacion.\nGracias.`
-      ), '_blank')
-      setShowRenewal(false)
-      onRefresh()
-      addToast('success', 'Solicitud de renovacion creada. Te contactaremos pronto.')
-    } catch {
-      addToast('error', 'No se pudo crear la solicitud')
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
-  const handleChangePlanSubmit = async () => {
-    if (!tenantId || !tenant || !selectedNewPlanId) return
-    setSubmitting(true)
-    try {
-      const { error: insErr } = await supabase
-        .from('subscription_requests')
-        .insert({
-          tenant_id: tenantId,
-          tipo: 'CAMBIO_PLAN',
-          plan_actual_id: plan?.id || null,
-          plan_nuevo_id: selectedNewPlanId,
-        })
-      if (insErr) throw insErr
-
-      const newPlan = allPlans.find(p => p.id === selectedNewPlanId)
-      window.open(buildWhatsAppUrl(
-        `Hola. Soy cliente de VenxPOS. Solicito cambio de plan.\n\nEmpresa: ${tenant?.nombre_negocio || ''}\nPlan actual: ${plan?.nombre || ''}\nNuevo plan: ${newPlan?.nombre || ''}\nID Cliente: ${clientId || 'N/A'}\n\nHe creado una solicitud de cambio de plan en la plataforma.\n\nQuedo atento a la aprobacion.\nGracias.`
-      ), '_blank')
-      setShowChangePlan(false)
-      setSelectedNewPlanId('')
-      onRefresh()
-      addToast('success', 'Solicitud de cambio de plan creada. Te contactaremos pronto.')
-    } catch {
-      addToast('error', 'No se pudo crear la solicitud')
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
+function QuickActions({ clientId }: { clientId?: string | null }) {
   return (
-    <>
-      <div className="flex flex-wrap gap-2.5">
-        <button
-          onClick={() => setShowRenewal(true)}
-          disabled={!canRenew || pendingRenewalReq}
-          className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-sm hover:shadow-md active:scale-[0.98] ${
-            !canRenew
-              ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-              : pendingRenewalReq
-              ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-              : isExpired
-              ? 'bg-danger-500 text-white hover:bg-danger-600'
-              : 'bg-brand-600 text-white hover:bg-brand-700'
-          }`}
-          title={
-            pendingRenewalReq
-              ? 'Ya tienes una solicitud de renovacion pendiente'
-              : !canRenew && daysLeft > 5
-              ? 'La renovacion estara disponible faltando 5 dias para el vencimiento'
-              : undefined
-          }
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+        <div className="w-11 h-11 rounded-xl bg-slate-100 flex items-center justify-center shrink-0">
+          <Clock className="w-5 h-5 text-slate-400" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <h2 className="text-sm font-bold text-slate-800">Renovaciones y cambios de plan</h2>
+            <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-700 border border-amber-200">
+              Proximamente
+            </span>
+          </div>
+          <p className="text-xs text-slate-500 mt-1">
+            Pronto podras gestionar tu renovacion o cambiar de plan desde aqui. Por ahora, contactanos por WhatsApp y lo haremos por ti.
+          </p>
+        </div>
+        <a
+          href={buildWhatsAppUrl(
+            `Hola. Deseo gestionar mi suscripcion de VenxPOS (renovacion o cambio de plan).\n\nID Cliente: ${clientId || 'N/A'}`
+          )}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold bg-green-600 text-white hover:bg-green-700 transition-colors shrink-0"
         >
-          <RefreshCw className="w-4 h-4" />
-          {pendingRenewalReq
-            ? 'Renovacion solicitada'
-            : !canRenew
-            ? `Renovacion en ${daysLeft - 5} dias`
-            : 'Solicitar Renovacion'}
-        </button>
-        <button
-          onClick={() => setShowChangePlan(true)}
-          disabled={pendingChangeReq}
-          className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-sm hover:shadow-md active:scale-[0.98] ${
-            pendingChangeReq
-              ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-              : 'bg-slate-900 text-white hover:bg-slate-800'
-          }`}
-          title={pendingChangeReq ? 'Ya tienes una solicitud de cambio pendiente' : undefined}
-        >
-          <ArrowRightLeft className="w-4 h-4" />
-          {pendingChangeReq ? 'Cambio solicitado' : 'Solicitar Cambio de Plan'}
-        </button>
-        <button
-          onClick={onCancel}
-          disabled={actionLoading}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-slate-500 hover:text-danger-500 hover:bg-danger-50 transition-all active:scale-[0.98]"
-        >
-          {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />}
-          Cancelar suscripcion
-        </button>
+          <MessageCircle className="w-3.5 h-3.5" />
+          Contactar soporte
+        </a>
       </div>
-
-      <AppModal open={showRenewal} onClose={() => !submitting && setShowRenewal(false)} title="Solicitar Renovacion" size="default">
-        <div className="p-6 space-y-4">
-          <div className="bg-brand-50 border border-brand-100 rounded-xl p-4 text-sm text-slate-600">
-            <p>Al crear esta solicitud, nuestro equipo revisara y aprobara la renovacion de tu suscripcion.</p>
-            <p className="mt-2 text-xs text-slate-400">Tiempo maximo de respuesta: {APP_CONFIG.responseTime}.</p>
-          </div>
-          <div className="bg-slate-50 rounded-lg p-3 space-y-1 text-xs">
-            <div className="flex justify-between text-slate-500">
-              <span>Plan actual</span>
-              <span className="font-semibold text-slate-700">{plan?.nombre || '\u2014'}</span>
-            </div>
-            {clientId && (
-              <div className="flex justify-between text-slate-500">
-                <span>ID Cliente</span>
-                <span className="font-mono text-slate-700">{clientId}</span>
-              </div>
-            )}
-          </div>
-          <div className="flex justify-end gap-2.5 pt-2 border-t border-slate-100">
-            <button onClick={() => setShowRenewal(false)} disabled={submitting} className="px-4 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors disabled:opacity-50">
-              Cancelar
-            </button>
-            <button onClick={handleRenewalSubmit} disabled={submitting} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-brand-600 text-white hover:bg-brand-700 transition-colors disabled:opacity-50">
-              {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-              Enviar solicitud
-            </button>
-          </div>
-        </div>
-      </AppModal>
-
-      <AppModal open={showChangePlan} onClose={() => !submitting && setShowChangePlan(false)} title="Solicitar Cambio de Plan" size="default">
-        <div className="p-6 space-y-4">
-          <div className="bg-purple-50 border border-purple-100 rounded-xl p-4 text-sm text-slate-600">
-            <p>Selecciona el plan al que deseas cambiarte. Nuestro equipo revisara y aprobara la solicitud.</p>
-            <p className="mt-2 text-xs text-slate-400">Tiempo maximo de respuesta: {APP_CONFIG.responseTime}.</p>
-          </div>
-          <div className="bg-slate-50 rounded-lg p-3 space-y-1 text-xs mb-3">
-            <div className="flex justify-between text-slate-500">
-              <span>Plan actual</span>
-              <span className="font-semibold text-slate-700">{plan?.nombre || '\u2014'}</span>
-            </div>
-            {clientId && (
-              <div className="flex justify-between text-slate-500">
-                <span>ID Cliente</span>
-                <span className="font-mono text-slate-700">{clientId}</span>
-              </div>
-            )}
-          </div>
-          <div className="space-y-2 max-h-60 overflow-y-auto">
-            {allPlans
-              .filter(p => p.id !== plan?.id)
-              .map(newPlan => (
-                <label
-                  key={newPlan.id}
-                  className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${
-                    selectedNewPlanId === newPlan.id
-                      ? 'border-brand-500 bg-brand-50'
-                      : 'border-slate-200 hover:border-slate-300 bg-white'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="radio"
-                      name="newPlan"
-                      value={newPlan.id}
-                      checked={selectedNewPlanId === newPlan.id}
-                      onChange={e => setSelectedNewPlanId(e.target.value)}
-                      className="accent-brand-600"
-                    />
-                    <div>
-                      <p className="text-sm font-semibold text-slate-800">{newPlan.nombre}</p>
-                      <p className="text-xs text-slate-400">
-                        {newPlan.max_sucursales} sucursales · {newPlan.max_administradores} administradores
-                      </p>
-                    </div>
-                  </div>
-                  <span className="text-sm font-bold text-slate-800 tabular-nums">
-                    {formatCurrency(newPlan.precio_mensual)}/mes
-                  </span>
-                </label>
-              ))}
-            {allPlans.filter(p => p.id !== plan?.id).length === 0 && (
-              <p className="text-sm text-slate-400 text-center py-4">No hay planes disponibles</p>
-            )}
-          </div>
-          <div className="flex justify-end gap-2.5 pt-2 border-t border-slate-100">
-            <button onClick={() => setShowChangePlan(false)} disabled={submitting} className="px-4 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors disabled:opacity-50">
-              Cancelar
-            </button>
-            <button onClick={handleChangePlanSubmit} disabled={submitting || !selectedNewPlanId} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-brand-600 text-white hover:bg-brand-700 transition-colors disabled:opacity-50">
-              {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRightLeft className="w-4 h-4" />}
-              Enviar solicitud
-            </button>
-          </div>
-        </div>
-      </AppModal>
-    </>
+    </div>
   )
 }
 
@@ -567,7 +341,7 @@ function PaymentHistory({ payments, facturas, plan }: { payments: Payment[]; fac
       const factura = p.id ? facturaMap.get(p.id) : undefined
       return (
         (factura?.numero_factura?.toLowerCase().includes(q)) ||
-        (p.wompi_reference?.toLowerCase().includes(q)) ||
+        (p.gateway_reference?.toLowerCase().includes(q)) ||
         (p.amount.toString().includes(q))
       )
     })
@@ -588,7 +362,7 @@ function PaymentHistory({ payments, facturas, plan }: { payments: Payment[]; fac
     const rows = [['Fecha', 'Monto', 'Metodo', 'Estado', 'Referencia', 'Factura']]
     for (const p of filtered) {
       const f = p.id ? facturaMap.get(p.id) : undefined
-      rows.push([p.created_at, String(p.amount), p.payment_method_type || '', p.status, p.wompi_reference || '', f?.numero_factura || ''])
+      rows.push([p.created_at, String(p.amount), p.payment_method_type || '', p.status, p.gateway_reference || '', f?.numero_factura || ''])
     }
     const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n')
     const blob = new Blob([csv], { type: 'text/csv' })
@@ -826,16 +600,13 @@ function PaymentHistory({ payments, facturas, plan }: { payments: Payment[]; fac
 }
 
 export function SubscriptionPage() {
-  const { tenant, plan, subscription, refreshTenant } = useAuthStore()
-  const { addToast } = useUIStore()
+  const { tenant, plan, subscription } = useAuthStore()
   const mounted = useRef(true)
   useEffect(() => { mounted.current = true; return () => { mounted.current = false } }, [])
 
   const [data, setData] = useState<SubscriptionData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [actionLoading, setActionLoading] = useState(false)
-  const [refreshKey, setRefreshKey] = useState(0)
 
   useEffect(() => {
     if (!tenant) return
@@ -887,26 +658,7 @@ export function SubscriptionPage() {
     }
     fetchData()
     return () => { cancelled = true }
-  }, [tenant, refreshKey])
-
-  const handleCancel = async () => {
-    if (!window.confirm('Al cancelar tu suscripcion, todas las sucursales quedaran inactivas y perderas acceso a VenxPOS al finalizar el periodo de facturacion actual. Esta accion no se puede deshacer.')) return
-    if (!subscription || !tenant) return
-    try {
-      setActionLoading(true)
-      const { error: rpcError } = await supabase.rpc('cancel_subscription', {
-        p_tenant_id: tenant.id,
-      })
-      if (rpcError) throw rpcError
-      await refreshTenant()
-      setRefreshKey(k => k + 1)
-      addToast('success', 'Suscripcion cancelada')
-    } catch {
-      addToast('error', 'No se pudo cancelar la suscripcion')
-    } finally {
-      setActionLoading(false)
-    }
-  }
+  }, [tenant])
 
   if (loading) {
     return (
@@ -966,17 +718,7 @@ export function SubscriptionPage() {
         payments={data?.payments ?? []}
       />
 
-      <QuickActions
-        tenant={tenant as { nombre_negocio?: string; email_propietario?: string } | null}
-        tenantId={tenant?.id || null}
-        plan={plan as { nombre?: string; id?: string } | null}
-        subscription={subscription as { proximo_cobro?: string | null } | null}
-        clientId={tenant?.client_id}
-        allPlans={data?.allPlans ?? []}
-        onCancel={handleCancel}
-        onRefresh={() => setRefreshKey(k => k + 1)}
-        actionLoading={actionLoading}
-      />
+      <QuickActions clientId={tenant?.client_id} />
 
       <PaymentHistory payments={data?.payments ?? []} facturas={data?.facturas ?? []} plan={plan} />
 

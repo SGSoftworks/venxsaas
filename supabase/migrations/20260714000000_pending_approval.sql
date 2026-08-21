@@ -4,11 +4,11 @@ ALTER TABLE public.tenants ADD CONSTRAINT tenants_estado_check
   CHECK (estado IN ('pending_payment', 'pending_approval', 'active', 'suspended', 'cancelled'));
 
 -- RPC: Set tenant to pending_approval after payment is verified
--- Called by webhook/check-payment/reconcile when an initial payment is approved
+-- Called when an initial payment is approved by admin
 CREATE OR REPLACE FUNCTION set_pending_approval(
     p_tenant_id UUID,
     p_payment_id UUID DEFAULT NULL,
-    p_wompi_transaction_id TEXT DEFAULT NULL
+    p_gateway_transaction_id TEXT DEFAULT NULL
 )
 RETURNS VOID
 SECURITY DEFINER
@@ -20,7 +20,7 @@ BEGIN
     IF p_payment_id IS NOT NULL THEN
         UPDATE public.payments
         SET status = 'approved',
-            wompi_transaction_id = COALESCE(p_wompi_transaction_id, wompi_transaction_id),
+            gateway_transaction_id = COALESCE(p_gateway_transaction_id, gateway_transaction_id),
             updated_at = NOW()
         WHERE id = p_payment_id AND status != 'approved';
     END IF;
@@ -35,7 +35,7 @@ BEGIN
     SELECT p_tenant_id, 'pending_approval',
            jsonb_build_object(
                'payment_id', p_payment_id,
-               'transaction_id', p_wompi_transaction_id,
+               'transaction_id', p_gateway_transaction_id,
                'fecha', CURRENT_DATE
            )
     FROM public.tenants WHERE id = p_tenant_id AND estado = 'pending_approval';

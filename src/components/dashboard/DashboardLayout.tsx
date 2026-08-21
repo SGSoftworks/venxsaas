@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { Outlet, NavLink, useNavigate, useLocation, Link } from 'react-router-dom'
 import { useAuthStore } from '@/store/useAuthStore'
 import { useUIStore } from '@/store/useUIStore'
@@ -24,15 +24,15 @@ import {
   ExternalLink,
 } from 'lucide-react'
 
-interface NavItem { to: string; icon: React.ComponentType<{ className?: string }>; label: string; end?: boolean }
+interface NavItem { to: string; icon: React.ComponentType<{ className?: string }>; label: string; end?: boolean; adminOnly?: boolean }
 
-const NAV_ITEMS = [
+const ALL_NAV_ITEMS = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', end: true },
   { to: '/dashboard/facturas', icon: FileText, label: 'Facturas' },
-  { to: '/dashboard/analitica', icon: TrendingUp, label: 'Analitica' },
+  { to: '/dashboard/analitica', icon: TrendingUp, label: 'Analitica', adminOnly: true },
   { to: '/dashboard/suscripcion', icon: CreditCard, label: 'Mi Suscripcion' },
-  { to: '/dashboard/sucursales', icon: Store, label: 'Sucursales' },
-  { to: '/dashboard/inventario', icon: Package, label: 'Inventario' },
+  { to: '/dashboard/sucursales', icon: Store, label: 'Sucursales', adminOnly: true },
+  { to: '/dashboard/inventario', icon: Package, label: 'Inventario', adminOnly: true },
 ] satisfies NavItem[]
 
 const POS_EXTERNAL_LINK = { icon: Monitor, label: 'Sistema POS' } as const
@@ -46,10 +46,14 @@ export function DashboardLayout() {
     tenant,
     plan,
     subscription,
+    rol,
     loading,
     initialized,
     logout,
   } = useAuthStore()
+
+  const isAdmin = rol === 'admin_negocio'
+  const NAV_ITEMS = useMemo(() => ALL_NAV_ITEMS.filter(item => !item.adminOnly || isAdmin), [isAdmin])
   const { sidebarOpen, toggleSidebar, setSidebarOpen } = useUIStore()
 
   useEffect(() => {

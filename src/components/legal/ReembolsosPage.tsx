@@ -63,7 +63,7 @@ export function ReembolsosPage() {
         </p>
         <ul className="list-disc pl-5 space-y-1.5 text-sm text-slate-600 leading-relaxed">
           <li>Comprobante de cada transacción realizada.</li>
-          <li>ID de referencia de Wompi de cada cobro.</li>
+          <li>ID de referencia de cada cobro.</li>
           <li>Fecha y hora de las transacciones.</li>
         </ul>
         <p className="text-sm text-slate-600 leading-relaxed mt-3">

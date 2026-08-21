@@ -72,7 +72,7 @@ $$;
 CREATE OR REPLACE FUNCTION process_renewal(
   p_tenant_id UUID,
   p_payment_id UUID,
-  p_wompi_transaction_id TEXT
+  p_gateway_transaction_id TEXT
 )
 RETURNS VOID
 LANGUAGE plpgsql
@@ -93,7 +93,7 @@ BEGIN
 
   INSERT INTO public.subscription_events (subscription_id, tenant_id, tipo, metadata)
   SELECT id, p_tenant_id, 'renewed',
-    jsonb_build_object('payment_id', p_payment_id, 'transaction_id', p_wompi_transaction_id)
+    jsonb_build_object('payment_id', p_payment_id, 'transaction_id', p_gateway_transaction_id)
   FROM public.subscriptions WHERE tenant_id = p_tenant_id;
 END;
 $$;

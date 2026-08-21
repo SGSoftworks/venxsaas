@@ -38,8 +38,6 @@ export function LoginPage() {
       navigate('/cambiar-contrasena', { replace: true })
     } else if (result.needsApproval || tenant?.estado === 'pending_approval') {
       navigate('/esperando-aprobacion', { replace: true })
-    } else if (result.needsPayment || tenant?.estado === 'pending_payment') {
-      navigate('/pago', { replace: true })
     } else if (isSuperadmin) {
       navigate('/admin', { replace: true })
     } else {
