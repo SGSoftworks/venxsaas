@@ -4,6 +4,7 @@ const ALLOWED_ORIGINS = [
   'http://localhost:3000',
   'http://127.0.0.1:5173',
   'http://127.0.0.1:5174',
+  'https://venxsaas.vercel.app',
   'https://venxpos.com',
   'https://www.venxpos.com',
   'https://venxpos.vercel.app',
@@ -11,13 +12,17 @@ const ALLOWED_ORIGINS = [
   'https://venxpos-pos.netlify.app',
 ]
 
+const PREVIEW_ORIGIN = /^https:\/\/venxsaas-[a-z0-9-]+\.vercel\.app$/
+
 const ALLOWED_METHODS = 'POST, GET, OPTIONS'
 const ALLOWED_HEADERS = 'authorization, x-client-info, apikey, content-type, x-event-checksum'
 
 function getOrigin(req: Request): string {
   const origin = req.headers.get('origin') || ''
   const allowed = ALLOWED_ORIGINS.find(o => origin.includes(o.replace('https://', '').replace('http://', '')))
-  return allowed ? origin : ALLOWED_ORIGINS[0]
+  if (allowed) return origin
+  if (PREVIEW_ORIGIN.test(origin)) return origin
+  return ALLOWED_ORIGINS[0]
 }
 
 export function corsHeaders(req?: Request) {
