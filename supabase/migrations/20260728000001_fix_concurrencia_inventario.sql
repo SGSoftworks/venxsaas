@@ -7,6 +7,10 @@
 -- ============================================================
 -- 1. Fix adjust_tenant_product_stock con FOR UPDATE + auditoria
 -- ============================================================
+-- Eliminar overload antiguo (5 params, sin concurrencia) para que
+-- las llamadas del frontend resuelvan siempre a la version segura.
+DROP FUNCTION IF EXISTS public.adjust_tenant_product_stock(UUID, UUID, TEXT, DECIMAL(12,3), TEXT);
+
 CREATE OR REPLACE FUNCTION public.adjust_tenant_product_stock(
     p_tenant_id UUID, p_producto_id UUID,
     p_tipo TEXT, p_cantidad DECIMAL(12,3),
@@ -74,7 +78,7 @@ BEGIN
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION public.adjust_tenant_product_stock TO authenticated;
+GRANT EXECUTE ON FUNCTION public.adjust_tenant_product_stock(UUID, UUID, TEXT, DECIMAL(12,3), TEXT, UUID) TO authenticated;
 
 -- ============================================================
 -- 2. RPC finalizar_venta: transaccional, multiple productos
@@ -186,4 +190,4 @@ BEGIN
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION public.finalizar_venta TO authenticated;
+GRANT EXECUTE ON FUNCTION public.finalizar_venta(UUID, UUID, JSONB, DECIMAL(12,2), DECIMAL(12,2), DECIMAL(12,2), TEXT, DECIMAL(12,2), DECIMAL(12,2), TEXT, UUID, TEXT) TO authenticated;
