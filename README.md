@@ -114,7 +114,6 @@ npm run deploy
 | `SECURITY_REPORT.md` | Auditoría de seguridad |
 | `RISK_ANALYSIS.md` | Matriz de riesgos |
 | `PRODUCTION_READINESS.md` | Checklist de producción |
-| `DIAN_INTEGRATION.md` | Documentación para facturación electrónica DIAN |
 | `PAYMENTS_FLOW.md` | Flujo de pagos |
 | `DEPLOY_GUIDE.md` | Guía de despliegue |
 | `BACKUP_RECOVERY.md` | Backup y recuperación |

@@ -341,7 +341,6 @@ function PaymentHistory({ payments, facturas, plan }: { payments: Payment[]; fac
       const factura = p.id ? facturaMap.get(p.id) : undefined
       return (
         (factura?.numero_factura?.toLowerCase().includes(q)) ||
-        (p.gateway_reference?.toLowerCase().includes(q)) ||
         (p.amount.toString().includes(q))
       )
     })
@@ -359,10 +358,10 @@ function PaymentHistory({ payments, facturas, plan }: { payments: Payment[]; fac
   const methodOptions = ['todos', ...new Set(payments.map(p => p.payment_method_type).filter((m): m is string => !!m))]
 
   const handleExportCSV = () => {
-    const rows = [['Fecha', 'Monto', 'Metodo', 'Estado', 'Referencia', 'Factura']]
+    const rows = [['Fecha', 'Monto', 'Metodo', 'Estado', 'Factura']]
     for (const p of filtered) {
       const f = p.id ? facturaMap.get(p.id) : undefined
-      rows.push([p.created_at, String(p.amount), p.payment_method_type || '', p.status, p.gateway_reference || '', f?.numero_factura || ''])
+      rows.push([p.created_at, String(p.amount), p.payment_method_type || '', p.status, f?.numero_factura || ''])
     }
     const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n')
     const blob = new Blob([csv], { type: 'text/csv' })

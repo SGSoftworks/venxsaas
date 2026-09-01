@@ -5,12 +5,9 @@ interface InvoiceData {
   numero: string
   concepto: string
   subtotal: number
-  iva: number
   total: number
   moneda: string
   created_at: string
-  gateway_transaction_id: string | null
-  gateway_reference: string | null
   metodo_pago: string
   tenant_nombre: string
   tenant_nit: string
@@ -248,17 +245,11 @@ function drawClientSection(ctx: Ctx, data: InvoiceData) {
 function drawPaymentSection(ctx: Ctx, data: InvoiceData) {
   const left = [
     data.metodo_pago ? `Método: ${data.metodo_pago}` : null,
-    data.gateway_reference ? `Referencia: ${data.gateway_reference}` : null,
   ].filter(Boolean) as string[]
 
   const right = [
-    data.gateway_transaction_id ? `ID Transacción: ${data.gateway_transaction_id}` : null,
-  ].filter(Boolean) as string[]
-  right.push(`Fecha de pago: ${formatInvoiceDate(data.created_at)}`)
-
-  if (!left.length && right.length <= 1) {
-    ctx.y -= 8; return
-  }
+    `Fecha de pago: ${formatInvoiceDate(data.created_at)}`,
+  ]
 
   const rows = Math.max(left.length, right.length)
   const contentH = rows * TXT_H + 4
@@ -272,12 +263,12 @@ function drawPaymentSection(ctx: Ctx, data: InvoiceData) {
   const midX = MARGIN + CONTENT_W * 0.45
   let ly = cy
   left.forEach(l => {
-    pg(ctx).drawText(l, { x: MARGIN, y: ly - 2, size: TXT_S, font: l.startsWith('Referencia:') ? ctx.mono : ctx.font, color: C.dark })
+    pg(ctx).drawText(l, { x: MARGIN, y: ly - 2, size: TXT_S, font: l.startsWith('Método:') ? ctx.mono : ctx.font, color: C.dark })
     ly -= TXT_H
   })
   let ry = cy
   right.forEach(l => {
-    pg(ctx).drawText(l, { x: midX, y: ry - 2, size: TXT_S, font: l.startsWith('ID Transacción:') ? ctx.mono : ctx.font, color: C.dark })
+    pg(ctx).drawText(l, { x: midX, y: ry - 2, size: TXT_S, font: ctx.font, color: C.dark })
     ry -= TXT_H
   })
 
@@ -295,7 +286,6 @@ function drawImplementationBlock(ctx: Ctx) {
     'Registro inicial del inventario',
     'Creación de usuarios administrativos',
     'Parametrización del sistema',
-    'Configuración tributaria',
     'Capacitación del personal',
     'Primera mensualidad incluida',
   ]
@@ -371,7 +361,7 @@ function drawPlanChangeBlock(ctx: Ctx, data: InvoiceData) {
 //  5. PERIOD SECTION
 // ═══════════════════════════════════════════════
 function drawPeriodSection(ctx: Ctx, data: InvoiceData) {
-  let lines: string[] = []
+  const lines: string[] = []
 
   if (data.tipo === 'cambio_plan') {
     lines.push(`Cambio efectivo: ${formatInvoiceDate(data.created_at)}`)
@@ -401,10 +391,10 @@ function drawPeriodSection(ctx: Ctx, data: InvoiceData) {
 // ═══════════════════════════════════════════════
 function drawItemsTable(ctx: Ctx, data: InvoiceData) {
   const conceptoW = 150
-  const colR = { cantidad: 265, valorUnitario: 363, iva: 446, total: 534 }
+  const colR = { cantidad: 265, valorUnitario: 363, total: 534 }
   const conceptoL = 60
 
-  let rows: { label: string; cant: string; vu: string; iva: string; tot: string }[] = []
+  let rows: { label: string; cant: string; vu: string; tot: string }[]
 
   if (data.tipo === 'activacion') {
     const cfg = getPlanConfigByName(data.plan_nombre)
@@ -414,16 +404,14 @@ function drawItemsTable(ctx: Ctx, data: InvoiceData) {
         { label: 'Configuración inicial de inventario', val: cfg.desglose_activacion.configuracion_inventario },
         { label: 'Primera mensualidad', val: cfg.desglose_activacion.primera_mensualidad },
       ]
-      rows = items.map(item => {
-        const v = item.val
-        const s = Math.round(v / 1.19)
-        return { label: item.label, cant: '1', vu: formatCurrency(s), iva: formatCurrency(v - s), tot: formatCurrency(v) }
-      })
+      rows = items.map(item => ({
+        label: item.label, cant: '1', vu: formatCurrency(item.val), tot: formatCurrency(item.val),
+      }))
     } else {
-      rows = [{ label: data.concepto, cant: '1', vu: formatCurrency(data.subtotal), iva: formatCurrency(data.iva), tot: formatCurrency(data.total) }]
+      rows = [{ label: data.concepto, cant: '1', vu: formatCurrency(data.subtotal), tot: formatCurrency(data.total) }]
     }
   } else {
-    rows = [{ label: data.concepto, cant: '1', vu: formatCurrency(data.subtotal), iva: formatCurrency(data.iva), tot: formatCurrency(data.total) }]
+    rows = [{ label: data.concepto, cant: '1', vu: formatCurrency(data.subtotal), tot: formatCurrency(data.total) }]
   }
 
   const headH = 22
@@ -445,7 +433,7 @@ function drawItemsTable(ctx: Ctx, data: InvoiceData) {
 
   p.drawRectangle({ x: MARGIN, y: y - headH, width: CONTENT_W, height: headH, color: C.brandDark })
   p.drawText('Concepto', { x: conceptoL, y: y - headH + 7, size: SML_S, font: ctx.bold, color: C.white })
-  ;[{ t: 'Cant.', r: colR.cantidad }, { t: 'Valor Unitario', r: colR.valorUnitario }, { t: 'IVA', r: colR.iva }, { t: 'Total', r: colR.total }].forEach(c => {
+  ;[{ t: 'Cant.', r: colR.cantidad }, { t: 'Valor Unitario', r: colR.valorUnitario }, { t: 'Total', r: colR.total }].forEach(c => {
     p.drawText(c.t, { x: c.r - tw(c.t, ctx.bold, SML_S), y: y - headH + 7, size: SML_S, font: ctx.bold, color: C.white })
   })
   y -= headH
@@ -457,7 +445,6 @@ function drawItemsTable(ctx: Ctx, data: InvoiceData) {
     wrapText(p, row.label, conceptoL, y - 7, conceptoW, ctx.font, SML_S, C.dark, lh)
     p.drawText(row.cant, { x: colR.cantidad - tw(row.cant, ctx.mono, TXT_S), y: y - 7, size: TXT_S, font: ctx.mono, color: C.dark })
     p.drawText(row.vu, { x: colR.valorUnitario - tw(row.vu, ctx.mono, TXT_S), y: y - 7, size: TXT_S, font: ctx.mono, color: C.dark })
-    p.drawText(row.iva, { x: colR.iva - tw(row.iva, ctx.mono, TXT_S), y: y - 7, size: TXT_S, font: ctx.mono, color: C.dark })
     p.drawText(row.tot, { x: colR.total - tw(row.tot, ctx.bold, TXT_S), y: y - 7, size: TXT_S, font: ctx.bold, color: C.dark })
     y -= rh
   })
@@ -469,12 +456,10 @@ function drawItemsTable(ctx: Ctx, data: InvoiceData) {
 //  7. FINANCIAL SUMMARY
 // ═══════════════════════════════════════════════
 function drawFinancialSummary(ctx: Ctx, data: InvoiceData) {
-  const sub = formatCurrency(data.subtotal)
-  const iva = formatCurrency(data.iva)
   const tot = formatCurrency(data.total)
 
   const rh = 14
-  const totalH = rh * 2 + 28
+  const totalH = rh * 1 + 28
 
   ensure(ctx, totalH + 8)
   let y = ctx.y
@@ -489,11 +474,7 @@ function drawFinancialSummary(ctx: Ctx, data: InvoiceData) {
   y -= 12
 
   pg(ctx).drawText('Subtotal', { x: labelX, y: y - 2, size: TXT_S, font: ctx.font, color: C.grayText })
-  pg(ctx).drawText(sub, { x: valX - tw(sub, ctx.font, TXT_S), y: y - 2, size: TXT_S, font: ctx.font, color: C.dark })
-  y -= rh
-
-  pg(ctx).drawText('IVA (19%)', { x: labelX, y: y - 2, size: TXT_S, font: ctx.font, color: C.grayText })
-  pg(ctx).drawText(iva, { x: valX - tw(iva, ctx.font, TXT_S), y: y - 2, size: TXT_S, font: ctx.font, color: C.dark })
+  pg(ctx).drawText(formatCurrency(data.subtotal), { x: valX - tw(formatCurrency(data.subtotal), ctx.font, TXT_S), y: y - 2, size: TXT_S, font: ctx.font, color: C.dark })
   y -= rh
 
   pg(ctx).drawRectangle({ x: MARGIN, y: y + 4, width: CONTENT_W, height: 1, color: C.brand })

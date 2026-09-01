@@ -57,13 +57,12 @@ venxpos-saas/
 ### Shared Modules (`_shared/`)
 - `cors.ts` — Whitelist de orígenes permitidos
 - `supabase.ts` — `supabaseAdmin` (service_role) + verifyAuth, verifySuperAdmin, verifyInternalKey
-- `wompi.ts` — Conservado como referencia para futura integración con pasarela de pagos
 - `notify.ts` + `email-template.ts` — Notificaciones transaccionales
 - `env.ts` — Mapeo de variables de entorno
 
 ### Base de datos
 - **SaaS**: tenants, plans, subscriptions, payments, facturas_saas, branch_accounts, pending_signups, subscription_requests, payment_proofs, audit_logs, superadmins
-- **POS**: sucursales, usuarios, productos, inventario_sucursal, ventas, venta_detalles, aperturas_caja, cierres_caja, categorias, movimientos_inventario, devoluciones, eventos_auditoria, configuracion_fiscal, ventas_conflicto, empresas
+- **POS**: sucursales, usuarios, productos, inventario_sucursal, ventas, venta_detalles, aperturas_caja, cierres_caja, categorias, movimientos_inventario, devoluciones, eventos_auditoria, ventas_conflicto, empresas
 - **RLS**: Políticas por tenant + superadmin. Uso de `get_user_sucursal()` para POS.
 
 ### Seguridad

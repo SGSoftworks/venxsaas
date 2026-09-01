@@ -24,11 +24,9 @@ async function main() {
 
   if (!payment) { console.log('No hay pagos pendientes'); return }
 
-  const txId = `sim-approve-${Date.now()}`
   const { error } = await supabase.rpc('process_webhook_approval', {
     p_payment_id: (payment as Record<string,string>).id,
     p_tenant_id: tenantId,
-    p_transaction_id: txId,
   })
 
   if (error) { console.error('Error:', error.message); return }

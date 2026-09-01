@@ -178,7 +178,7 @@ const implementationBenefits = [
   {
     icon: Sliders,
     title: 'Parametrización',
-    desc: 'Configuramos impuestos, formas de pago, categorías y todo lo necesario.',
+    desc: 'Configuramos formas de pago, categorías, inventario inicial y todo lo necesario.',
   },
   {
     icon: Package,
@@ -246,7 +246,7 @@ const faqItems = [
   {
     question: '¿Qué incluye la mensualidad?',
     answer:
-      'La mensualidad incluye el acceso completo a todas las funcionalidades del plan contratado, almacenamiento en la nube, soporte técnico, actualizaciones del sistema, facturación electrónica y respaldo diario de datos. No incluye costos de implementación, configuraciones adicionales ni servicios no contemplados en el plan.',
+      'La mensualidad incluye el acceso completo a todas las funcionalidades del plan contratado, almacenamiento en la nube, soporte técnico, actualizaciones del sistema, generación de facturas y respaldo diario de datos. No incluye costos de implementación, configuraciones adicionales ni servicios no contemplados en el plan.',
   },
   {
     question: '¿Cómo solicito una renovación?',

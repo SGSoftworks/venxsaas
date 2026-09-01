@@ -19,7 +19,7 @@ export function AceptableUsePage() {
         <p className="text-sm text-slate-600 leading-relaxed">
           VenxPOS debe ser utilizado exclusivamente por comercios legalmente constituidos en
           la República de Colombia para fines comerciales lícitos relacionados con la operación
-          de punto de venta, gestión de inventario, facturación electrónica y administración
+          de punto de venta, gestión de inventario, generación de facturas y administración
           de sucursales. El Servicio no puede ser utilizado para actividades distintas a su
           objeto contractual ni para fines ilegales o no autorizados.
         </p>

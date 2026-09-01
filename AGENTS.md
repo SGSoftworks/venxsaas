@@ -48,8 +48,8 @@
 - Manejar CORS con `corsHeaders`
 - Retornar JSON con status codes apropiados
 
-### Pagos (futura integración)
-- La integración con Wompy se eliminó. Las columnas `gateway_transaction_id` y `gateway_reference` en la BD se conservan para futura integración con cualquier pasarela.
+### Pagos
+- Los pagos se registran manualmente por el administrador. No hay pasarela de pagos integrada (se eliminó Wompi y toda columna `gateway_*` de la BD).
 
 ## Estructura de archivos
 

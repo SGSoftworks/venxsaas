@@ -8,7 +8,8 @@ describe('classNames', () => {
   })
 
   it('filters falsy values', () => {
-    expect(classNames('foo', false && 'bar', 'baz')).toBe('foo baz')
+    const falsy = false
+    expect(classNames('foo', falsy && 'bar', 'baz')).toBe('foo baz')
   })
 })
 

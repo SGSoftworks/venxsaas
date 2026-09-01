@@ -66,7 +66,7 @@ serve(async (req) => {
     console.log('[generate-pdf] Fetching payment...')
     const { data: payment } = await supabaseAdmin
       .from('payments')
-      .select('payment_method_type, tipo, gateway_reference')
+      .select('payment_method_type, tipo')
       .eq('id', factura.payment_id)
       .maybeSingle()
     console.log('[generate-pdf] Payment:', payment?.payment_method_type || 'MANUAL', 'tipo:', payment?.tipo || '—')
@@ -115,7 +115,6 @@ serve(async (req) => {
 
     const metodoPago = payment?.payment_method_type || 'MANUAL'
     const metodoLabel: Record<string, string> = {
-      CARD: 'Tarjeta',
       NEQUI: 'Nequi',
       PSE: 'PSE',
       BANCOLOMBIA_TRANSFER: 'Bancolombia',
@@ -139,12 +138,9 @@ serve(async (req) => {
       numero: factura.numero_factura,
       concepto: factura.concepto,
       subtotal: Number(factura.subtotal),
-      iva: Number(factura.iva),
       total: Number(factura.total),
       moneda: factura.moneda || 'COP',
       created_at: factura.created_at,
-      gateway_transaction_id: factura.gateway_transaction_id,
-      gateway_reference: payment?.gateway_reference || null,
       metodo_pago: metodoLabel[metodoPago] || metodoPago,
       tenant_nombre: String(tenant.nombre_negocio || ''),
       tenant_nit: String(tenant.nit || ''),

@@ -74,7 +74,6 @@ export const FACTURAS_COLUMNS: ExportColumn[] = [
   { key: 'numero_factura', header: 'Número', width: 22 },
   { key: 'concepto', header: 'Concepto', width: 40 },
   { key: 'subtotal', header: 'Subtotal', format: 'currency', width: 15 },
-  { key: 'iva', header: 'IVA', format: 'currency', width: 15 },
   { key: 'total', header: 'Total', format: 'currency', width: 15 },
   { key: 'created_at', header: 'Fecha', format: 'date', width: 14 },
 ]

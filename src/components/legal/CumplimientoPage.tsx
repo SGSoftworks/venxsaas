@@ -3,37 +3,16 @@ import { LegalLayout, type LegalSection } from './LegalLayout'
 import { Mail, MessageCircle } from 'lucide-react'
 
 const sections: LegalSection[] = [
-  { id: 'facturacion-electronica', title: '1. Facturación Electrónica DIAN' },
-  { id: 'proteccion-datos', title: '2. Protección de Datos Personales' },
-  { id: 'comercio-electronico', title: '3. Comercio Electrónico' },
-  { id: 'resolucion-dian', title: '4. Resolución 000042 de 2020 DIAN' },
-  { id: 'estatuto-tributario', title: '5. Estatuto Tributario Colombiano' },
-  { id: 'responsabilidad', title: '6. Régimen de Responsabilidad' },
-  { id: 'contacto', title: '7. Contacto' },
+  { id: 'proteccion-datos', title: '1. Protección de Datos Personales' },
+  { id: 'comercio-electronico', title: '2. Comercio Electrónico' },
+  { id: 'responsabilidad', title: '3. Régimen de Responsabilidad' },
+  { id: 'contacto', title: '4. Contacto' },
 ]
 
 export function CumplimientoPage() {
   return (
     <LegalLayout title="Cumplimiento Normativo" sections={sections}>
-      <Section id="facturacion-electronica" num="1" title="Facturación Electrónica DIAN">
-        <p className="text-sm text-slate-600 leading-relaxed mb-3">
-          VenxPOS cumple con los requisitos establecidos por la Dirección de Impuestos y Aduanas
-          Nacionales (DIAN) para la facturación electrónica en Colombia, conforme a:
-        </p>
-        <ul className="list-disc pl-5 space-y-1.5 text-sm text-slate-600 leading-relaxed">
-          <li>Decreto 2242 de 2015: régimen de facturación electrónica.</li>
-          <li>Resolución 000042 de 2020: anexo técnico de factura electrónica de venta.</li>
-          <li>Anexo técnico versión 1.0: validación y generación de documentos electrónicos.</li>
-        </ul>
-        <p className="text-sm text-slate-600 leading-relaxed mt-3">
-          El Servicio genera documentos electrónicos que cumplen con la estructura técnica y los
-          requisitos de validación establecidos por la DIAN. Es responsabilidad del Cliente
-          contar con la habilitación vigente como facturador electrónico ante la DIAN y mantener
-          actualizados sus datos fiscales en la plataforma.
-        </p>
-      </Section>
-
-      <Section id="proteccion-datos" num="2" title="Protección de Datos Personales">
+      <Section id="proteccion-datos" num="1" title="Protección de Datos Personales">
         <p className="text-sm text-slate-600 leading-relaxed mb-3">
           VenxPOS cumple con la Ley 1581 de 2012 y el Decreto Reglamentario 1377 de 2013 sobre
           protección de datos personales (Habeas Data). El Servicio implementa:
@@ -46,7 +25,7 @@ export function CumplimientoPage() {
         </ul>
       </Section>
 
-      <Section id="comercio-electronico" num="3" title="Comercio Electrónico">
+      <Section id="comercio-electronico" num="2" title="Comercio Electrónico">
         <p className="text-sm text-slate-600 leading-relaxed">
           VenxPOS se acoge a lo dispuesto en la Ley 527 de 1999 sobre comercio electrónico y
           mensajes de datos, que reconoce la validez jurídica de los documentos electrónicos,
@@ -56,40 +35,17 @@ export function CumplimientoPage() {
         </p>
       </Section>
 
-      <Section id="resolucion-dian" num="4" title="Resolución 000042 de 2020 DIAN">
+      <Section id="responsabilidad" num="3" title="Régimen de Responsabilidad">
         <p className="text-sm text-slate-600 leading-relaxed">
-          La facturación electrónica generada a través de VenxPOS cumple con la Resolución 000042
-          de 2020 de la DIAN, que establece las condiciones técnicas, tecnológicas y de contenido
-          para la expedición de facturas electrónicas. El Servicio valida los campos obligatorios,
-          genera el código QR correspondiente y entrega el documento en formato XML y PDF
-          conforme a los estándares exigidos.
+          VenxPOS actúa como proveedor de infraestructura tecnológica para la operación
+          comercial. El Cliente es el único responsable de la veracidad, integridad y exactitud
+          de los datos, transacciones e información registrada en la plataforma, así como del
+          cumplimiento de sus obligaciones comerciales, contables y tributarias ante las
+          autoridades competentes.
         </p>
       </Section>
 
-      <Section id="estatuto-tributario" num="5" title="Estatuto Tributario Colombiano">
-        <p className="text-sm text-slate-600 leading-relaxed mb-3">
-          VenxPOS opera en conformidad con las siguientes disposiciones del Estatuto Tributario
-          colombiano:
-        </p>
-        <ul className="list-disc pl-5 space-y-1.5 text-sm text-slate-600 leading-relaxed">
-          <li>Artículo 615: obligación de expedir factura.</li>
-          <li>Artículo 617: requisitos de la factura de venta.</li>
-          <li>Artículo 420: hecho generador del IVA.</li>
-          <li>Artículo 632: deber de facturar electrónicamente.</li>
-        </ul>
-      </Section>
-
-      <Section id="responsabilidad" num="6" title="Régimen de Responsabilidad">
-        <p className="text-sm text-slate-600 leading-relaxed">
-          VenxPOS actúa como proveedor de infraestructura tecnológica para la generación de
-          documentos electrónicos. El Cliente es el único responsable de la veracidad,
-          integridad y exactitud de los datos fiscales, transacciones e información registrada
-          en la plataforma, así como del cumplimiento de sus obligaciones tributarias ante la
-          DIAN y demás autoridades competentes.
-        </p>
-      </Section>
-
-      <Section id="contacto" num="7" title="Contacto">
+      <Section id="contacto" num="4" title="Contacto">
         <p className="text-sm text-slate-600 leading-relaxed mb-3">
           Para consultas sobre cumplimiento normativo:
         </p>

@@ -58,7 +58,7 @@ export function TerminosPage() {
         <p className="text-sm text-slate-600 leading-relaxed">
           VenxPOS es un sistema SaaS (Software as a Service) de gestión empresarial y punto de venta (POS)
           diseñado para comercios colombianos. El Servicio permite administrar ventas, inventario,
-          sucursales, facturación electrónica, clientes y suscripciones desde una interfaz web unificada.
+          sucursales, generación de facturas, clientes y suscripciones desde una interfaz web unificada.
           Se presta exclusivamente a través de navegadores web modernos y no requiere instalación
           de software adicional. VenxPOS opera bajo un modelo de suscripción mensual con planes
           escalables según las necesidades del Cliente.
@@ -120,13 +120,12 @@ export function TerminosPage() {
         </p>
         <ul className="list-disc pl-5 space-y-1.5 text-sm text-slate-600 leading-relaxed">
           <li><span className="font-medium text-slate-700">Plan Básico:</span> funcionalidades esenciales de punto de venta y gestión de inventario para una sucursal.</li>
-          <li><span className="font-medium text-slate-700">Plan Estándar:</span> múltiples sucursales, reportes avanzados y facturación electrónica básica.</li>
-          <li><span className="font-medium text-slate-700">Plan Pro:</span> todas las funcionalidades, productos ilimitados, soporte WhatsApp y facturación electrónica ilimitada.</li>
+          <li><span className="font-medium text-slate-700">Plan Estándar:</span> múltiples sucursales, reportes avanzados y generación de facturas.</li>
+          <li><span className="font-medium text-slate-700">Plan Pro:</span> todas las funcionalidades, productos ilimitados, soporte WhatsApp y generación ilimitada de facturas.</li>
         </ul>
         <p className="text-sm text-slate-600 leading-relaxed mt-3">
-          Los pagos se procesan a través de una pasarela de pagos certificada.
+          Los pagos se procesan a través de métodos de transferencia directa a las cuentas de VenxPOS.
           Al contratar un plan, el usuario autoriza los cobros recurrentes según el plan seleccionado.
-          Todos los precios incluyen el IVA cuando corresponda según el Estatuto Tributario colombiano.
           VenxPOS se reserva el derecho de modificar los precios notificando con al menos treinta (30)
           días calendario de anticipación. Consulte nuestros{' '}
           <Link to="/legal/metodos-pago" className="text-brand-600 hover:underline">métodos de pago aceptados</Link>

@@ -37,9 +37,9 @@ export function PrivacidadPage() {
           <li><span className="font-medium text-slate-700">Sucursales:</span> sedes o puntos de venta asociados a la cuenta.</li>
         </ul>
         <p className="text-sm text-slate-600 leading-relaxed mt-3">
-          VenxPOS no almacena números de tarjeta de crédito ni débito, CVV ni fechas de
-          vencimiento. Estos datos son gestionados exclusivamente por la pasarela de pagos.
-          bajo sus propios estándares de seguridad PCI-DSS.
+          VenxPOS no procesa pagos con tarjeta y no almacena números de tarjeta, CVV ni
+          fechas de vencimiento. Los pagos de suscripción se registran manualmente mediante
+          comprobantes bajo los estándares de seguridad de la plataforma.
         </p>
       </Section>
 
@@ -78,8 +78,7 @@ export function PrivacidadPage() {
           Al cancelar la suscripción, los datos se conservan por un período de noventa (90)
           días calendario para facilitar la reactivación, tras el cual son eliminados de manera
           irreversible. Los datos de facturación y registros contables se conservan por el
-          término de cinco (5) años exigido por el Estatuto Tributario colombiano y la
-          Resolución 000042 de 2020 de la DIAN.
+          término de cinco (5) años exigido por el Estatuto Tributario colombiano.
         </p>
         <p className="text-sm text-slate-600 leading-relaxed">
           El Cliente puede solicitar en cualquier momento la eliminación anticipada de sus

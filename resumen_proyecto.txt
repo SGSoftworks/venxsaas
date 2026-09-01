@@ -1,0 +1,131 @@
+RESUMEN TÉCNICO FINAL — VENXPOS
+=================================
+
+1. QUÉ ES VENXPOS
+-----------------
+VenxPOS es una plataforma integral de gestión comercial para retail en Colombia
+(supermercados, minimercados, autoservicios) que combina dos capas:
+
+- POS (frontend operativo): registro de ventas en caja en tiempo real, control
+  de inventario por sucursal, códigos de barras, productos por peso, venta libre,
+  devoluciones, cierre de caja, historial y reportes.
+- SaaS (frontend administrativo): administración centralizada multi-tenant de
+  clientes (tenants), sucursales, usuarios, permisos, planes de suscripción,
+  pagos, facturación, inventario consolidado y análisis.
+
+Ambos frontends comparten la misma base de datos y proyecto Supabase. La
+plataforma NO incluye pasarela de pagos ni facturación electrónica DIAN: los
+pagos de suscripción se registran manualmente por el administrador y la
+facturación genera un documento interno (PDF) sin requerimientos fiscales.
+
+2. STACK / TECNOLOGÍAS
+----------------------
+- Frontend POS (venxpos): React 19, TypeScript estricto, Vite, TailwindCSS v4,
+  Zustand, Supabase JS, jsPDF (reportes/PDF), XLSX (import/export).
+- Frontend SaaS (venxpos-saas): React 19, React Router v7, React Hook Form +
+  Zod, Zustand, TailwindCSS v4, Supabase JS, Recharts, GSAP (solo landing),
+  Motion (microinteracciones).
+- Backend: Supabase (Auth, PostgreSQL, RLS, Edge Functions en Deno).
+- Correo: Resend (solo notificaciones transaccionales).
+- Hosting: Vercel (SPA con rewrites) + Supabase (DB/Auth/EFs).
+
+3. ARQUITECTURA Y REPOSITORIOS
+------------------------------
+- Repositorio POS: `venxpos` (aplicación de caja). Sin backend propio; consume
+  Supabase con RLS-aware queries.
+- Repositorio SaaS: `venxpos-saas` (panel administrativo, landing, Edge
+  Functions bajo `supabase/functions/`, scripts bajo `scripts/`, documentación
+  en `docs/`).
+- Proyecto Supabase compartido: `beacnoxukkoellhecofm`.
+
+4. MODELO DE DATOS (resumen)
+----------------------------
+Esquema multi-tenant: cada tenant tiene sucursales; la información se separa por
+`sucursal_id`. Tablas principales: tenants, subscribtors (usuarios SaaS),
+branch_accounts, sucursales, usuarios (cajeros POS con PIN), productos,
+categorias, inventario_sucursal, aperturas_caja, cierres_caja, ventas,
+venta_detalles, devoluciones, devolucion_detalles, movimientos_inventario,
+payments, facturas_saas, payment_proofs, planes_saas, eventos_auditoria.
+
+NOTA IMPORTANTE (limpieza aplicada): se eliminaron de toda la base de datos,
+código y documentación los conceptos de IVA/impuestos (columnas tarifa_iva,
+tarifa_impoconsumo, impuestos, tabla configuracion_fiscal), la integración DIAN
+(resolucion_dian, regimen) y la pasarela Wompi/gateway (columnas gateway_*,
+_shared/wompi.ts). Se conserva el NIT en sucursales por identificación
+comercial. Los métodos de pago son EFECTIVO, BILLETERA, QR y MIXTO
+(MIXTO = Efectivo + QR); se eliminó TARJETA.
+
+Los totales se calculan con precio de venta + descuento por ítem
+(subtotal = total). La columna `hash` de ventas es un resumen SHA-256
+del payload de la venta (integridad/no repudio de ticket).
+
+5. PAGOS DE SUSCRIPCIÓN (modelo actual)
+---------------------------------------
+- No hay pasarela: el administrador registra el pago manualmente desde el panel
+  (AdminPayments). Comprobante: logos generados y guardados en Supabase Storage.
+- Estados de pago: pending, approved, rejected, refunded.
+- Flujo de aprobación vía Edge Function `approve-tenant`
+  (set_pending_approval + activate_tenant).
+
+6. EDGE FUNCTIONS (Deno)
+------------------------
+- `approve-tenant`: aprueba solicitudes de activación (crea subscriptions y
+  branch_accounts al aprobar un pago). No utiliza pasarela/transacción.
+- `generate-pdf`: genera la factura PDF de cada pago mediante invoice-template
+  (canvas en Deno, sin dependencias del navegador). No incluye IVA.
+- `notify` (_shared): utilidad de correo vía Resend.
+
+Firmas de funciones SQL relevantes (fuente: migración aplicada):
+- activate_tenant(p_tenant_id uuid, p_payment_id uuid, p_payment_source_id text DEFAULT '')
+- set_pending_approval(p_payment_id uuid, p_tenant_id uuid DEFAULT NULL)
+- process_plan_change(p_tenant_id uuid, p_payment_id uuid, p_new_plan_id uuid)
+- process_renewal(p_tenant_id uuid, p_payment_id uuid)
+- process_webhook_approval(p_payment_id uuid, p_tenant_id uuid, p_payment_source_id text DEFAULT '')
+- generar_factura_desde_pago(p_payment_id uuid) RETURNS uuid
+- next_ticket_number(p_sucursal_id uuid) RETURNS bigint
+- finalizar_venta / set_venta_detalle / aplicar_descuento_linea / decrementar_inventario / incrementar_inventario
+
+7. SEGURIDAD
+------------
+- RLS habilitada en todas las tablas (queries siempre RLS-aware desde el cliente).
+- Validación de JWT en Edge Functions vía supabaseAdmin.auth.getUser(jwt).
+- CORS con permisos por origen (incluye venxpos.vercel.app y venxsaas.vercel.app).
+- CSP en vercel.json, X-Frame-Options: DENY.
+- Zod en todos los inputs de Edge Functions.
+- Nunca se exponen llaves privadas en el bundle (solo anon key en el cliente).
+
+8. DESPLIEGUE
+-------------
+- SaaS y POS: Vercel (SPA rewrites, orígenes CORS permitidos).
+- EFs: `supabase functions deploy <nombre> --use-api --project-ref beacnoxukkoellhecofm`.
+- Migraciones: `supabase db push` / MRR.
+  Migraciones aplicadas recientemente (núcleo del esquema actual):
+  - supabase/migrations/20260617043200_init_schema.sql
+  - supabase/migrations/20260617043300_add_favorites_minstock.sql
+  - supabase/migrations/20260617043400_consolidated_fixes.sql
+  - supabase/migrations/20260617043500_fix_decrementar_overload.sql
+  - supabase/migrations/20260617050000_add_devoluciones.sql
+  - supabase/migrations/20260619_saas_pos_integration.sql
+  - supabase/migrations/20260901000000_remove_taxes_wompi_dian.sql  (limpieza IVA/DIAN/gateway)
+
+9. PRUEBAS Y CALIDAD
+--------------------
+- `npm run build` (tsc + vite) sin errores en ambos repos.
+- `npm run lint` sin errores (eslint). Reglas nuevas de react-hooks
+  (set-state-in-effect, purity) desactivadas en eslint.config.js por exigir
+  patrones no usados en la base de código.
+- Estados de UI: loading, error, empty, success en todos los módulos.
+
+10. CREDENCIALES DE PRUEBA / DATOS DE REFERENCIA
+------------------------------------------------
+- Superadmin SaaS: juan.dev1809@gmail.com / 103052Alis
+- Tenant demo: demo@venxpos.com / Demo123!
+- Usuario POS de prueba: pin 1234 (usuario a6006d0b-3be8-4cad-91f1-c9c2774a7405)
+- Sucursal demo: fcb2f8e2-5995-4122-a0a5-5e56ebf6c6df
+- Tenant demo: 4ca11e84-5878-4c71-85aa-3ad5f9dcf2e1
+
+11. LO QUE QUEDA FUERA DEL PRODUCTO
+-----------------------------------
+- Facturación electrónica / DIAN (eliminada).
+- Pasarela de pagos / tarjeta (eliminada; pagos manuales).
+- Impuestos/IVA (eliminados; precios finales).

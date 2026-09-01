@@ -44,8 +44,6 @@ export interface Payment {
   id: string
   tenant_id: string
   subscription_id: string | null
-  gateway_transaction_id: string | null // disponible para futura integracion
-  gateway_reference: string | null // disponible para futura integracion
   amount: number
   currency: string
   status: 'pending' | 'approved' | 'declined' | 'voided' | 'error'
@@ -86,11 +84,9 @@ export interface FacturaSaas {
   id: string
   tenant_id: string
   payment_id: string | null
-  gateway_transaction_id: string | null // disponible para futura integracion
   numero_factura: string
   concepto: string
   subtotal: number
-  iva: number
   total: number
   moneda: string
   estado: 'emitida' | 'pagada' | 'anulada' | 'reembolsada'
@@ -132,7 +128,6 @@ export interface PaymentProof {
   id: string
   tenant_id: string
   plan_id: string | null
-  gateway_reference: string // disponible para futura integracion
   amount: number
   payment_date: string
   proof_url: string | null

@@ -135,8 +135,6 @@ serve(async (req) => {
       .from('payments')
       .insert({
         tenant_id: tenantId,
-        gateway_transaction_id: proofRef || null,
-        gateway_reference: proofRef || null,
         amount: proofAmount || 0,
         currency: 'COP',
         status: 'approved',

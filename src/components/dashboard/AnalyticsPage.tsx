@@ -21,9 +21,9 @@ export function AnalyticsPage() {
   const [ventasMes, setVentasMes] = useState(0)
   const [ventasAno, setVentasAno] = useState(0)
   const [ticketPromedio, setTicketPromedio] = useState(0)
+  const [transaccionesMes, setTransaccionesMes] = useState(0)
   const [productosVendidos, setProductosVendidos] = useState(0)
   const [ganancia, setGanancia] = useState(0)
-  const [ivaRecaudado, setIvaRecaudado] = useState(0)
   const [dailySales, setDailySales] = useState<{ date: string; total: number }[]>([])
   const [monthlySales, setMonthlySales] = useState<{ mes: string; total: number }[]>([])
   const [topProducts, setTopProducts] = useState<{ name: string; qty: number }[]>([])
@@ -78,6 +78,7 @@ export function AnalyticsPage() {
       setVentasMes(mesTotal)
       setVentasAno(anoTotal)
       setTicketPromedio(mesCount > 0 ? mesTotal / mesCount : 0)
+      setTransaccionesMes(mesCount)
 
       const pmGrouped = new Map<string, number>()
       for (const v of (ventasMesData || []) as { total: number; metodo_pago: string }[]) {
@@ -92,12 +93,11 @@ export function AnalyticsPage() {
       if (ventasIds.length > 0) {
         const { data: detallesData } = await supabase
           .from('venta_detalles')
-          .select('cantidad_o_peso, subtotal, costo_aplicado, tarifa_iva_aplicada')
+          .select('cantidad_o_peso, subtotal, costo_aplicado')
           .in('venta_id', ventasIds)
-        const detalles = (detallesData || []) as { cantidad_o_peso: number; subtotal: number; costo_aplicado: number; tarifa_iva_aplicada: number }[]
+        const detalles = (detallesData || []) as { cantidad_o_peso: number; subtotal: number; costo_aplicado: number }[]
         setProductosVendidos(detalles.reduce((s, d) => s + Number(d.cantidad_o_peso || 0), 0))
         setGanancia(detalles.reduce((s, d) => s + (Number(d.subtotal || 0) - Number(d.costo_aplicado || 0)), 0))
-        setIvaRecaudado(detalles.reduce((s, d) => s + (Number(d.subtotal || 0) * Number(d.tarifa_iva_aplicada || 0)), 0))
       }
 
       if (cancelled.current) return
@@ -167,7 +167,7 @@ export function AnalyticsPage() {
       if (!cancelled.current) setLoading(false)
     }
     return () => { cancelled.current = true }
-  }, [tenant?.id, selectedBranch])
+  }, [tenant, selectedBranch])
 
   useEffect(() => { fetchData() }, [fetchData])
 
@@ -250,7 +250,7 @@ export function AnalyticsPage() {
             <>
               <StatCard icon={Package} label="Productos Vendidos" value={productosVendidos.toLocaleString()} color="text-brand-600" bg="bg-brand-50" />
               <StatCard icon={TrendingUp} label="Ganancia" value={formatCurrency(ganancia)} color="text-green-600" bg="bg-green-50" />
-              <StatCard icon={DollarSign} label="IVA Recaudado" value={formatCurrency(ivaRecaudado)} color="text-brand-600" bg="bg-brand-50" />
+              <StatCard icon={Store} label="Transacciones del mes" value={transaccionesMes.toLocaleString()} color="text-brand-600" bg="bg-brand-50" />
             </>
           )}
       </div>

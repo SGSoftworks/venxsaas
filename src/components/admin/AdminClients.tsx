@@ -79,7 +79,7 @@ export function AdminClients() {
   const [createClientOpen, setCreateClientOpen] = useState(false)
   const [createClientPlans, setCreateClientPlans] = useState<Plan[]>([])
   const [createForm, setCreateForm] = useState({ nombreNegocio: '', nit: '', email: '', telefono: '', planId: '', fechaInicio: new Date().toISOString().split('T')[0] })
-  const [invoiceForm, setInvoiceForm] = useState({ metodo: '', factura: '', transaccionId: '', referencia: '', monto: '', motivo: 'recurring' })
+  const [invoiceForm, setInvoiceForm] = useState({ metodo: '', factura: '', monto: '', motivo: 'recurring' })
   const [invoiceLoading, setInvoiceLoading] = useState(false)
 
   const [createLoading, setCreateLoading] = useState(false)
@@ -182,7 +182,7 @@ export function AdminClients() {
         payments: (payments || []) as Payment[],
         branches: (branches || []) as BranchAccount[],
       })
-      setInvoiceForm({ metodo: '', factura: '', transaccionId: '', referencia: '', monto: precioDefault ? String(precioDefault) : '', motivo: 'recurring' })
+      setInvoiceForm({ metodo: '', factura: '', monto: precioDefault ? String(precioDefault) : '', motivo: 'recurring' })
     } catch {
       addToast('error', 'Error al cargar detalle')
     } finally {
@@ -199,8 +199,6 @@ export function AdminClients() {
         .from('payments')
         .insert({
           tenant_id: detailOpen.tenant.id,
-          gateway_transaction_id: invoiceForm.transaccionId || null,
-          gateway_reference: invoiceForm.referencia || invoiceForm.factura || `VENX-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
           amount,
           currency: 'COP',
           status: 'approved',
@@ -242,7 +240,7 @@ export function AdminClients() {
 
       addToast('success', `Factura generada exitosamente`)
       const precioDefault = detailOpen.plan?.precio_mensual
-      setInvoiceForm({ metodo: '', factura: '', transaccionId: '', referencia: '', monto: precioDefault ? String(precioDefault) : '', motivo: 'recurring' })
+      setInvoiceForm({ metodo: '', factura: '', monto: precioDefault ? String(precioDefault) : '', motivo: 'recurring' })
       openDetail(detailOpen.tenant)
     } catch (e) {
       addToast('error', e instanceof Error ? e.message : 'Error al generar factura')
@@ -660,18 +658,6 @@ export function AdminClients() {
                           <input value={invoiceForm.factura} onChange={e => setInvoiceForm({ ...invoiceForm, factura: e.target.value })}
                             className="w-full mt-0.5 px-2 py-1 text-[11px] border border-slate-200 rounded-md focus:outline-none focus:border-brand-500 font-mono"
                             placeholder="VENX-000001" />
-                        </div>
-                        <div>
-                          <label className="text-[9px] text-slate-400 uppercase tracking-wider">ID Transaccion</label>
-                          <input value={invoiceForm.transaccionId} onChange={e => setInvoiceForm({ ...invoiceForm, transaccionId: e.target.value })}
-                            className="w-full mt-0.5 px-2 py-1 text-[11px] border border-slate-200 rounded-md focus:outline-none focus:border-brand-500 font-mono"
-                            placeholder="ID de pago" />
-                        </div>
-                        <div>
-                          <label className="text-[9px] text-slate-400 uppercase tracking-wider">Referencia</label>
-                          <input value={invoiceForm.referencia} onChange={e => setInvoiceForm({ ...invoiceForm, referencia: e.target.value })}
-                            className="w-full mt-0.5 px-2 py-1 text-[11px] border border-slate-200 rounded-md focus:outline-none focus:border-brand-500 font-mono"
-                            placeholder="Ref. del pago" />
                         </div>
                         <div>
                           <label className="text-[9px] text-slate-400 uppercase tracking-wider">Monto (COP)</label>

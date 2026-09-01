@@ -32,7 +32,6 @@ if (!supabaseUrl || !serviceKey) {
 const supabase = createClient(supabaseUrl, serviceKey)
 
 async function getOrCreateTestTenant(): Promise<string> {
-  // Buscar un tenant existente en pending_payment
   const { data: tenants } = await supabase.from('tenants').select('id,email_propietario').eq('estado', 'pending_payment').limit(1)
 
   if (tenants && tenants.length > 0) {
@@ -46,19 +45,14 @@ async function getOrCreateTestTenant(): Promise<string> {
 }
 
 async function simulateApproved(tenantId: string) {
-  console.log('\n=== ESCENARIO 1: PAGO APROBADO ===')
+  console.log('\n=== ESCENARIO 1: PAGO APROBADO (manual) ===')
 
-  const txId = `sim-approved-${Date.now()}`
-
-  // Insertar payment aprobado
   const { data: payment, error } = await supabase.from('payments').insert({
     tenant_id: tenantId,
-    gateway_transaction_id: txId,
-    gateway_reference: `SIM-OK-${tenantId.substring(0, 8)}`,
     amount: 150000,
     currency: 'COP',
     status: 'approved',
-    payment_method_type: 'CARD',
+    payment_method_type: 'MANUAL',
     tipo: 'initial',
   }).select('id').single()
 
@@ -66,11 +60,9 @@ async function simulateApproved(tenantId: string) {
 
   console.log(`Payment creado: ${(payment as Record<string,string>).id}`)
 
-  // Activar tenant via RPC
   const { error: rpcError } = await supabase.rpc('process_webhook_approval', {
     p_payment_id: (payment as Record<string,string>).id,
     p_tenant_id: tenantId,
-    p_transaction_id: txId,
   })
 
   if (rpcError) {
@@ -78,7 +70,6 @@ async function simulateApproved(tenantId: string) {
     return
   }
 
-  // Verificar
   const { data: tenant } = await supabase.from('tenants').select('estado').eq('id', tenantId).single()
   console.log(`Tenant estado: ${(tenant as Record<string,string>).estado}`)
   console.log('RESULTADO: Pago aprobado — Tenant ACTIVADO')
@@ -91,12 +82,10 @@ async function simulatePending(tenantId: string) {
 
   const { data: payment, error } = await supabase.from('payments').insert({
     tenant_id: tenantId,
-    gateway_transaction_id: `link-sim-pending-${Date.now()}`,
-    gateway_reference: `SIM-PENDING-${tenantId.substring(0, 8)}`,
     amount: 150000,
     currency: 'COP',
     status: 'pending',
-    payment_method_type: 'PAYMENT_LINK',
+    payment_method_type: 'MANUAL',
     tipo: 'initial',
     created_at: tenMinAgo,
   }).select('id').single()
@@ -104,23 +93,7 @@ async function simulatePending(tenantId: string) {
   if (error) { console.error('Error:', error.message); return }
 
   console.log(`Payment pendiente creado: ${(payment as Record<string,string>).id} (creado hace 10 min)`)
-
-  // Simular reconcile-payments
-  try {
-    const resp = await fetch(`${supabaseUrl}/functions/v1/reconcile-payments`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${serviceKey}`,
-      },
-    })
-    const result = await resp.json()
-    console.log('Reconciliación:', JSON.stringify(result, null, 2))
-  } catch (e) {
-    console.log('Reconciliación no disponible (esperado si no hay webhook)')
-  }
-
-  console.log('RESULTADO: Pago pendiente — Revisa "Ya pagué, verificar" en la app')
+  console.log('RESULTADO: Pago pendiente — Debe ser aprobado por el administrador')
 }
 
 async function simulateDeclined(tenantId: string) {
@@ -128,12 +101,10 @@ async function simulateDeclined(tenantId: string) {
 
   const { data: payment, error } = await supabase.from('payments').insert({
     tenant_id: tenantId,
-    gateway_transaction_id: `sim-declined-${Date.now()}`,
-    gateway_reference: `SIM-DECLINED-${tenantId.substring(0, 8)}`,
     amount: 150000,
     currency: 'COP',
     status: 'declined',
-    payment_method_type: 'CARD',
+    payment_method_type: 'MANUAL',
     tipo: 'initial',
   }).select('id').single()
 
@@ -154,12 +125,10 @@ async function simulateReconnect(tenantId: string) {
 
   const { data: payment, error } = await supabase.from('payments').insert({
     tenant_id: tenantId,
-    gateway_transaction_id: `link-sim-reconnect-${Date.now()}`,
-    gateway_reference: `SIM-RECONNECT-${tenantId.substring(0, 8)}`,
     amount: 150000,
     currency: 'COP',
     status: 'pending',
-    payment_method_type: 'PAYMENT_LINK',
+    payment_method_type: 'MANUAL',
     tipo: 'initial',
     created_at: fiveMinAgo,
   }).select('id').single()
@@ -170,8 +139,7 @@ async function simulateReconnect(tenantId: string) {
   console.log('RESULTADO: Simula cerrar y volver —')
   console.log('  1. En la app, inicia sesión con el usuario del tenant')
   console.log('  2. Serás redirigido a /pago (tenant en pending_payment)')
-  console.log('  3. Click "Ya pagué, verificar ahora" → buscará el pago pendiente')
-  console.log('  4. Para aprobarlo, ejecuta: npx tsx scripts/approve-payment.ts ' + tenantId)
+  console.log('  3. Para aprobarlo, ejecuta: npx tsx scripts/approve-payment.ts ' + tenantId)
 }
 
 async function main() {

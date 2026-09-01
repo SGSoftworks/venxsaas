@@ -205,8 +205,6 @@ export function AdminPayments() {
             id: d.id as string,
             tenant_id: d.tenant_id as string,
             subscription_id: d.subscription_id as string | null,
-            gateway_transaction_id: d.gateway_transaction_id as string | null,
-            gateway_reference: d.gateway_reference as string | null,
             amount: d.amount as number,
             currency: d.currency as string,
             status: d.status as Payment['status'],
@@ -263,16 +261,15 @@ export function AdminPayments() {
 
   const handleExportCSV = () => {
     if (payments.length === 0) return
-    const headers = ['ID Transaccion', 'Cliente', 'Estado', 'Monto', 'Metodo', 'Tipo', 'Plan', 'Referencia', 'Factura', 'Fecha']
+    const headers = ['ID', 'Cliente', 'Estado', 'Monto', 'Metodo', 'Tipo', 'Plan', 'Factura', 'Fecha']
     const rows = payments.map(p => [
-      p.gateway_transaction_id || p.id,
+      p.id,
       p.tenant_nombre || '',
       STATUS_LABELS[p.status] || p.status,
       String(p.amount),
       METHOD_LABELS[p.payment_method_type || ''] || p.payment_method_type || '',
       TYPE_LABELS[p.tipo] || p.tipo,
       p.plan_nombre || '',
-      p.gateway_reference || '',
       p.factura_numero || '',
       formatDateShort(p.created_at),
     ])
@@ -589,12 +586,12 @@ export function AdminPayments() {
                           {techDetailsOpen[p.id] && (
                             <div className="grid grid-cols-2 gap-4 mt-2 text-[11px]">
                               <div>
-                                <p className="text-slate-400 mb-0.5">ID Transaccion</p>
-                                <p className="text-slate-500 font-mono break-all">{p.gateway_transaction_id || '\u2014'}</p>
+                                <p className="text-slate-400 mb-0.5">ID Pago</p>
+                                <p className="text-slate-500 font-mono break-all">{p.id}</p>
                               </div>
                               <div>
-                                <p className="text-slate-400 mb-0.5">Referencia</p>
-                                <p className="text-slate-500 font-mono break-all">{p.gateway_reference || '\u2014'}</p>
+                                <p className="text-slate-400 mb-0.5">Suscripcion</p>
+                                <p className="text-slate-500 font-mono break-all">{p.subscription_id || '\u2014'}</p>
                               </div>
                             </div>
                           )}

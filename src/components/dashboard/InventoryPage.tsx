@@ -39,8 +39,6 @@ type ProductRow = {
   categoria_id: string | null
   sucursal_nombre: string | null
   sucursal_id: string | null
-  tarifa_iva: number
-  tarifa_impoconsumo: number
 }
 
 type FilterMode = 'todos' | 'stock_bajo' | 'inactivos'
@@ -290,8 +288,6 @@ function CreateProductModal({
     stock_minimo: string
     categoria_id: string
     sucursal_id: string
-    tarifa_iva: string
-    tarifa_impoconsumo: string
   }) => Promise<void>
   loading: boolean
   branches: BranchOption[]
@@ -306,8 +302,6 @@ function CreateProductModal({
   const [stockMinimo, setStockMinimo] = useState('10')
   const [categoriaId, setCategoriaId] = useState('')
   const [sucursalId, setSucursalId] = useState(defaultBranchId || '')
-  const [tarifaIva, setTarifaIva] = useState('0.19')
-  const [tarifaImpoconsumo, setTarifaImpoconsumo] = useState('0')
   const [error, setError] = useState('')
 
 
@@ -336,8 +330,6 @@ function CreateProductModal({
       stock_minimo: stockMinimo || '10',
       categoria_id: categoriaId,
       sucursal_id: sucursalId,
-      tarifa_iva: tarifaIva,
-      tarifa_impoconsumo: tarifaImpoconsumo,
     })
   }
 
@@ -447,36 +439,6 @@ function CreateProductModal({
 
           <div>
             <label className="block text-xs font-medium text-slate-700 mb-1.5">
-              IVA
-            </label>
-            <select
-              value={tarifaIva}
-              onChange={(e) => setTarifaIva(e.target.value)}
-              className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-slate-700"
-            >
-              <option value="0.19">19%</option>
-              <option value="0.05">5%</option>
-              <option value="0">Exento</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1.5">
-              Impoconsumo
-            </label>
-            <select
-              value={tarifaImpoconsumo}
-              onChange={(e) => setTarifaImpoconsumo(e.target.value)}
-              className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-slate-700"
-            >
-              <option value="0">Ninguno</option>
-              <option value="0.08">8%</option>
-              <option value="0.16">16%</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1.5">
               Categoría
             </label>
             <select
@@ -581,8 +543,6 @@ export function InventoryPage() {
     costo: '',
     stock_minimo: '',
     categoria_id: '',
-    tarifa_iva: '0.19',
-    tarifa_impoconsumo: '0',
   })
 
   const [adjustTarget, setAdjustTarget] = useState<{
@@ -649,8 +609,6 @@ export function InventoryPage() {
           categoria_id: (p.categoria_id as string) || null,
           sucursal_nombre: (p.sucursal_nombre as string) || null,
           sucursal_id: (p.sucursal_id as string) || null,
-          tarifa_iva: (p.tarifa_iva as number) ?? 0.19,
-          tarifa_impoconsumo: (p.tarifa_impoconsumo as number) ?? 0,
         }))
 
         if (!cancelled) setProducts(rows)
@@ -699,8 +657,6 @@ export function InventoryPage() {
     stock_minimo: string
     categoria_id: string
     sucursal_id: string
-    tarifa_iva: string
-    tarifa_impoconsumo: string
   }) => {
     if (!tenant) return
     setCreateLoading(true)
@@ -715,8 +671,6 @@ export function InventoryPage() {
         p_stock_inicial: parseInt(form.stock_inicial || '0'),
         p_stock_minimo: parseInt(form.stock_minimo || '10'),
         p_categoria_id: form.categoria_id || null,
-        p_tarifa_iva: parseFloat(form.tarifa_iva),
-        p_tarifa_impoconsumo: parseFloat(form.tarifa_impoconsumo || '0'),
       })
 
       if (rpcError) throw rpcError
@@ -745,8 +699,6 @@ export function InventoryPage() {
       costo: String(p.costo),
       stock_minimo: String(p.stock_minimo),
       categoria_id: p.categoria_id || '',
-      tarifa_iva: String(p.tarifa_iva),
-      tarifa_impoconsumo: String(p.tarifa_impoconsumo),
     })
   }
 
@@ -762,8 +714,6 @@ export function InventoryPage() {
         p_costo: parseFloat(editForm.costo),
         p_stock_minimo: parseInt(editForm.stock_minimo) || 10,
         p_categoria_id: editForm.categoria_id || null,
-        p_tarifa_iva: parseFloat(editForm.tarifa_iva),
-        p_tarifa_impoconsumo: parseFloat(editForm.tarifa_impoconsumo || '0'),
       })
 
       if (rpcError) throw rpcError
@@ -830,8 +780,6 @@ export function InventoryPage() {
       precio_venta: p.precio_venta,
       costo: p.costo,
       sucursal_nombre: p.sucursal_nombre || '',
-      iva: `${(p.tarifa_iva * 100).toFixed(0)}%`,
-      impoconsumo: p.tarifa_impoconsumo > 0 ? `${(p.tarifa_impoconsumo * 100).toFixed(0)}%` : '-',
       activo: p.activo ? 'Si' : 'No',
     }))
 
