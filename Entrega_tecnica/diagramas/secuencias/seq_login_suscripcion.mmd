@@ -1,0 +1,18 @@
+%% Secuencia: login y verificación de suscripción (POS y SaaS)
+sequenceDiagram
+    actor U as Usuario
+    participant APP as App (POS/SaaS)
+    participant AUTH as Supabase Auth
+    participant PG as PostgreSQL
+
+    U->>APP: Ingresa correo y contraseña
+    APP->>AUTH: signInWithPassword
+    AUTH-->>APP: JWT + session
+    APP->>PG: SELECT usuarios (rol, sucursal_id) [POS]
+    APP->>PG: RPC get_subscription_info()
+    PG-->>APP: {plan, subscription_status, proximo_cobro}
+    alt subscription_status = active
+        APP-->>U: Acceso concedido
+    else no activa
+        APP-->>U: "Cuenta pausada" (bloqueo + enlace al panel)
+    end

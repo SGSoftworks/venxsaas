@@ -1,0 +1,31 @@
+@startuml C4_Codigo
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+title Sistema VenxPOS - Nivel 4: Codigo (flujo de venta en el POS)
+
+Person(cajero, "Cajero")
+
+Container_Boundary(pos, "POS (SPA React)") {
+  Component(pos_layout, "POSLayout", "React", "Layout con guard de conexion (ConnectionGuard).")
+  Component(cart_view, "Vista de carrito", "React", "Busqueda y seleccion de productos.")
+  Component(store, "useAppStore", "Zustand", "carrito, totales, sesion de turno (addToCart, calculateTotals).")
+  Component(payment, "PaymentModal", "React", "Cobro: efectivo/QR/billetera/mixto, ticket MAX+1, hash SHA-256.")
+  Component(receipt, "Receipt", "React", "Render e impresion del ticket.")
+  Component(return_modal, "ReturnModal", "React", "Devolucion por ticket.")
+  Component(cash, "AperturaTurnoModal / CashRegisterClose", "React", "Apertura y cierre de caja.")
+}
+
+Container(db, "PostgreSQL + RLS", "Supabase")
+Container(authlib, "Web Crypto (SHA-256)", "Navegador")
+
+Rel(cajero, cart_view, "Agrega productos")
+Rel(cart_view, store, "addToCart")
+Rel(store, payment, "carrito y totales")
+Rel(payment, db, "SELECT inventario; INSERT ventas/venta_detalles; RPC decrementar_inventario", "REST/RPC")
+Rel(payment, authlib, "hash de venta")
+Rel(payment, receipt, "datos del ticket")
+Rel(receipt, cajero, "Imprime")
+Rel(return_modal, db, "INSERT devoluciones; RPC incrementar_inventario", "REST/RPC")
+Rel(cash, db, "INSERT aperturas_caja / cierres_caja", "REST/RPC")
+
+@enduml

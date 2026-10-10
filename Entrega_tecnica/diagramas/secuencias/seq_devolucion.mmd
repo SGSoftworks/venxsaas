@@ -1,0 +1,19 @@
+%% Secuencia: devolución en el POS
+sequenceDiagram
+    actor C as Cajero
+    participant POS as VenxPOS POS
+    participant PG as PostgreSQL
+
+    C->>POS: Ingresa número de ticket
+    POS->>PG: SELECT ventas (ticket_number, sucursal)
+    PG-->>POS: venta
+    POS->>PG: SELECT venta_detalles
+    PG-->>POS: detalle
+    C->>POS: Confirma devolución (motivo opcional)
+    POS->>PG: INSERT devoluciones (totales negativos)
+    loop por cada ítem
+        POS->>PG: INSERT devolucion_detalles (cantidad negativa)
+        POS->>PG: RPC incrementar_inventario(...)
+        PG-->>POS: ok (stock restaurado)
+    end
+    POS-->>C: "Devolución registrada"

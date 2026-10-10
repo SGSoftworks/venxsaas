@@ -1,0 +1,38 @@
+@startuml C4_Componentes
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+title Sistema VenxPOS - Nivel 3: Componentes (Panel SaaS / SPA)
+
+Person(dueno, "Dueno / Admin de negocio")
+Person(superadmin, "Superadministrador")
+
+Container_Boundary(spa, "Panel SaaS (SPA React)") {
+
+  Component(routing, "Enrutador y Guards", "React Router v7", "Rutas /dashboard y /admin con AuthGuard, AdminNegocioGuard y GerenteGuard.")
+  Component(auth_store, "Store de autenticacion", "Zustand", "Sesion, rol y contexto de tenant/sucursal (useAuthStore).")
+  Component(ui_store, "Store de UI", "Zustand", "Estado global de interfaz (useUIStore).")
+
+  Component(dash, "Modulo Dashboard", "React + RHF + Zod", "Inicio, sucursales, usuarios, productos, inventario, caja, reportes, suscripcion.")
+  Component(admin, "Modulo Superadmin", "React + RHF + Zod", "Gestion de tenants, planes, solicitudes, pagos, facturas y auditoria global.")
+
+  Component(supabase_client, "Cliente Supabase", "supabase-js", "Acceso anon/RLS a Auth, PostgREST y Functions desde el navegador.")
+  Component(services, "Servicios de dominio", "TypeScript", "Encapsulan queries RPC y de tablas (suscripcion, sucursales, pagos, etc.).")
+}
+
+Container(db, "PostgreSQL + RLS", "Supabase")
+Container(edge, "Edge Functions", "Supabase / Deno")
+Container(auth, "Supabase Auth", "GoTrue")
+
+Rel(dueno, routing, "Usa /dashboard", "HTTPS")
+Rel(superadmin, routing, "Usa /admin", "HTTPS")
+Rel(routing, auth_store, "Resuelve permisos")
+Rel(routing, dash, "Renderiza")
+Rel(routing, admin, "Renderiza")
+Rel(dash, services, "Invoca")
+Rel(admin, services, "Invoca")
+Rel(services, supabase_client, "Usa")
+Rel(supabase_client, db, "PostgREST + RPC", "HTTPS")
+Rel(supabase_client, auth, "Auth", "HTTPS")
+Rel(supabase_client, edge, "Invocacion de funciones", "HTTPS")
+
+@enduml

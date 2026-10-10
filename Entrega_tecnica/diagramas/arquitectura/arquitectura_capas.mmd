@@ -1,0 +1,35 @@
+%% Arquitectura por capas de VenxPOS
+flowchart TB
+    subgraph CapaVista["Capa de presentación (Vista)"]
+        V1[React 19 + Vite]
+        V2[TailwindCSS]
+        V3[Zustand · estado global]
+        V4[React Router v7 · SaaS]
+    end
+
+    subgraph CapaControl["Capa de aplicación (Control/RPC)"]
+        C1[Stores Zustand · orquestación]
+        C2[RPCs PostgreSQL]
+        C3[Edge Functions Deno]
+    end
+
+    subgraph CapaDatos["Capa de datos (Modelo)"]
+        D1[("PostgreSQL")]
+        D2[RLS · policies]
+        D3[Triggers · contadores]
+    end
+
+    subgraph Infra["Infraestructura / Servicios"]
+        I1[Supabase Auth]
+        I2[PostgREST]
+        I3[Storage invoices]
+        I4[Resend]
+    end
+
+    CapaVista --> CapaControl
+    CapaControl --> CapaDatos
+    CapaVista --> I1
+    CapaVista --> I2
+    I2 --> CapaDatos
+    C3 --> I3
+    C3 --> I4

@@ -1,0 +1,232 @@
+%% MER central de VenxPOS (esquema public)
+%% Fuente editable Mermaid (erDiagram). Render best-effort.
+erDiagram
+    plans ||--o{ tenants : "plan_id"
+    plans ||--o{ subscriptions : "plan_id"
+    tenants ||--o{ subscriptions : "tenant_id"
+    tenants ||--o{ payments : "tenant_id"
+    tenants ||--o{ facturas_saas : "tenant_id"
+    tenants ||--o{ branch_accounts : "tenant_id"
+    tenants ||--o{ payment_proofs : "tenant_id"
+    tenants ||--o{ subscription_requests : "tenant_id"
+    subscriptions ||--o{ subscription_events : "subscription_id"
+    subscriptions ||--o{ payments : "subscription_id"
+    subscriptions ||--o{ subscription_requests : "subscription_id"
+    payments ||--o| facturas_saas : "payment_id"
+    empresas ||--o{ sucursales : "empresa_id"
+    sucursales ||--o{ usuarios : "sucursal_id"
+    sucursales ||--o{ categorias : "sucursal_id"
+    sucursales ||--o{ productos : "sucursal_id"
+    sucursales ||--o{ inventario_sucursal : "sucursal_id"
+    sucursales ||--o{ ventas : "sucursal_id"
+    sucursales ||--o{ devoluciones : "sucursal_id"
+    sucursales ||--o{ aperturas_caja : "sucursal_id"
+    sucursales ||--o{ cierres_caja : "sucursal_id"
+    sucursales ||--o{ movimientos_inventario : "sucursal_id"
+    sucursales ||--o{ eventos_auditoria : "sucursal_id"
+    sucursales ||--o{ branch_accounts : "sucursal_id"
+    categorias ||--o{ categorias : "parent_id"
+    categorias ||--o{ productos : "categoria_id"
+    productos ||--o{ inventario_sucursal : "producto_id"
+    productos ||--o{ venta_detalles : "producto_id"
+    productos ||--o{ devolucion_detalles : "producto_id"
+    productos ||--o{ movimientos_inventario : "producto_id"
+    productos ||--o{ ventas_conflicto : "producto_id"
+    usuarios ||--o{ ventas : "cajero_id"
+    usuarios ||--o{ devoluciones : "cajero_id"
+    usuarios ||--o{ aperturas_caja : "usuario_id"
+    usuarios ||--o{ cierres_caja : "cajero_id"
+    usuarios ||--o{ movimientos_inventario : "usuario_id"
+    usuarios ||--o{ eventos_auditoria : "usuario_id"
+    ventas ||--o{ venta_detalles : "venta_id"
+    ventas ||--o{ devoluciones : "venta_original_id"
+    ventas ||--o{ ventas_conflicto : "venta_id"
+    devoluciones ||--o{ devolucion_detalles : "devolucion_id"
+    aperturas_caja ||--o{ cierres_caja : "apertura_caja_id"
+
+    tenants {
+        uuid id PK
+        uuid plan_id FK
+        string nombre_negocio
+        string nit UK
+        string email_propietario
+        string telefono
+        string estado
+        string client_id UK
+        uuid auth_user_id
+        bool must_change_password
+    }
+    plans {
+        uuid id PK
+        string nombre
+        numeric precio_inicial
+        numeric precio_mensual
+        int max_sucursales
+        int max_administradores
+        json features
+        bool activo
+    }
+    subscriptions {
+        uuid id PK
+        uuid tenant_id FK
+        uuid plan_id FK
+        string estado
+        timestamp fecha_inicio
+        timestamp fecha_renovacion
+        timestamp proximo_cobro
+    }
+    payments {
+        uuid id PK
+        uuid tenant_id FK
+        uuid subscription_id FK
+        numeric amount
+        string status
+        string tipo
+        string payment_method_type
+        string currency
+    }
+    facturas_saas {
+        uuid id PK
+        uuid tenant_id FK
+        uuid payment_id FK
+        string numero_factura
+        string concepto
+        numeric subtotal
+        numeric total
+        string estado
+        string pdf_url
+    }
+    sucursales {
+        uuid id PK
+        uuid empresa_id FK
+        string nombre
+        string nit
+        string direccion
+        string telefono
+    }
+    usuarios {
+        uuid id PK
+        uuid sucursal_id FK
+        uuid user_id
+        string nombre
+        string pin_acceso
+        string rol
+        string estado
+    }
+    productos {
+        uuid id PK
+        uuid sucursal_id FK
+        uuid categoria_id FK
+        string codigo_barras
+        string descripcion
+        numeric costo
+        numeric precio_venta
+        bool requiere_peso
+        numeric stock_minimo
+        bool activo
+    }
+    inventario_sucursal {
+        uuid id PK
+        uuid producto_id FK
+        uuid sucursal_id FK
+        numeric stock_actual
+        int version
+    }
+    ventas {
+        uuid id PK
+        uuid sucursal_id FK
+        uuid cajero_id FK
+        string metodo_pago
+        numeric subtotal
+        numeric total
+        numeric monto_recibido
+        numeric cambio_entregado
+        int ticket_number
+        string hash
+        timestamp fecha_hora
+    }
+    venta_detalles {
+        uuid id PK
+        uuid venta_id FK
+        uuid producto_id FK
+        numeric cantidad_o_peso
+        numeric precio_unitario
+        numeric descuento
+        numeric subtotal
+    }
+    devoluciones {
+        uuid id PK
+        uuid venta_original_id FK
+        uuid sucursal_id FK
+        uuid cajero_id FK
+        string metodo_pago
+        numeric subtotal
+        numeric total
+    }
+    devolucion_detalles {
+        uuid id PK
+        uuid devolucion_id FK
+        uuid producto_id FK
+        numeric cantidad
+        numeric precio_unitario
+        numeric subtotal
+    }
+    aperturas_caja {
+        uuid id PK
+        uuid sucursal_id FK
+        uuid usuario_id FK
+        numeric fondo_inicial
+        string estado
+        numeric efectivo_esperado
+    }
+    cierres_caja {
+        uuid id PK
+        uuid apertura_caja_id FK
+        uuid sucursal_id FK
+        uuid cajero_id FK
+        numeric total_sistema
+        numeric total_fisico
+        numeric diferencia
+    }
+    movimientos_inventario {
+        uuid id PK
+        uuid producto_id FK
+        uuid sucursal_id FK
+        uuid usuario_id FK
+        string tipo
+        numeric cantidad
+        numeric stock_resultante
+    }
+    ventas_conflicto {
+        uuid id PK
+        uuid venta_id FK
+        uuid producto_id FK
+        numeric cantidad_solicitada
+        numeric stock_disponible
+        string tipo
+        bool resuelto
+    }
+    branch_accounts {
+        uuid id PK
+        uuid tenant_id FK
+        uuid sucursal_id FK
+        string email
+        string rol
+        bool activo
+    }
+    eventos_auditoria {
+        uuid id PK
+        uuid sucursal_id FK
+        uuid usuario_id FK
+        string tipo
+        string descripcion
+        json metadata
+    }
+    audit_logs {
+        uuid id PK
+        uuid tenant_id FK
+        string accion
+        string entidad
+        string entidad_id
+        json metadata
+    }

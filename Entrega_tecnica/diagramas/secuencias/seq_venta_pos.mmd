@@ -1,0 +1,25 @@
+%% Secuencia: registro de venta en el POS
+sequenceDiagram
+    actor C as Cajero
+    participant POS as VenxPOS POS
+    participant PG as PostgreSQL (vía PostgREST/RPC)
+
+    C->>POS: Escanea/agrega productos al carrito
+    POS->>POS: Calcula subtotal y total (sin impuestos)
+    C->>POS: Confirma pago (EFECTIVO/BILLETERA/QR/MIXTO)
+    POS->>PG: SELECT inventario_sucursal (stock por ítem)
+    PG-->>POS: stock_actual
+    alt stock insuficiente
+        POS-->>C: Error "Stock insuficiente"
+    else stock suficiente
+        POS->>POS: Calcula ticket = MAX(ticket_number)+1
+        POS->>POS: Calcula hash SHA-256 de la venta
+        POS->>PG: INSERT ventas
+        POS->>PG: INSERT venta_detalles
+        loop por cada ítem
+            POS->>PG: RPC decrementar_inventario(...)
+            PG-->>POS: ok (version++)
+        end
+        POS->>POS: setLastCompletedSale + clearCart
+        POS-->>C: Imprime ticket (window.print)
+    end

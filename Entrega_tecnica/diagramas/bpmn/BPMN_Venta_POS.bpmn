@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  id="Definitions_VenxPOS"
+                  targetNamespace="http://venxpos.com/bpmn"
+                  exporter="VenxPOS documentacion"
+                  exporterVersion="1.0">
+
+  <bpmn:collaboration id="Collaboration_VentaPOS">
+    <bpmn:participant id="Participant_VentaPOS" name="Proceso principal: Venta en Punto de Venta" processRef="Process_VentaPOS"/>
+  </bpmn:collaboration>
+
+  <bpmn:process id="Process_VentaPOS" name="Venta en Punto de Venta" isExecutable="false">
+
+    <bpmn:laneSet id="LaneSet_VentaPOS">
+      <bpmn:lane id="Lane_Cajero" name="Cajero">
+        <bpmn:flowNodeRef>Start_Inicio</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>UserTask_Login</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>UserTask_Apertura</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>UserTask_AgregarItems</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>UserTask_ProcesarPago</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>UserTask_CobroEfectivo</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>UserTask_CobroDigital</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>UserTask_CobroMixto</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_SistemaPOS" name="Sistema POS">
+        <bpmn:flowNodeRef>Gateway_Suscripcion</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_CuentaPausada</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_MasItems</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_Metodo</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>ServiceTask_VerificarStock</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_Stock</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>ServiceTask_ImprimirTicket</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_VentaCompletada</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_BD" name="Base de datos (Supabase / PostgreSQL)">
+        <bpmn:flowNodeRef>ServiceTask_RegistrarVenta</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>ServiceTask_DescontarInventario</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Start_Inicio" name="Inicio">
+      <bpmn:outgoing>f1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:userTask id="UserTask_Login" name="Iniciar sesión">
+      <bpmn:incoming>f1</bpmn:incoming>
+      <bpmn:outgoing>f2</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:exclusiveGateway id="Gateway_Suscripcion" name="¿Suscripción activa?">
+      <bpmn:incoming>f2</bpmn:incoming>
+      <bpmn:outgoing>f3</bpmn:outgoing>
+      <bpmn:outgoing>f4</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:endEvent id="End_CuentaPausada" name="Acceso bloqueado (cuenta pausada)">
+      <bpmn:incoming>f4</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:userTask id="UserTask_Apertura" name="Apertura de turno (fondo inicial)">
+      <bpmn:incoming>f3</bpmn:incoming>
+      <bpmn:outgoing>f5</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:userTask id="UserTask_AgregarItems" name="Escanear / agregar productos al carrito">
+      <bpmn:incoming>f5</bpmn:incoming>
+      <bpmn:incoming>f7</bpmn:incoming>
+      <bpmn:incoming>f18</bpmn:incoming>
+      <bpmn:outgoing>f6</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:exclusiveGateway id="Gateway_MasItems" name="¿Agregar más ítems?">
+      <bpmn:incoming>f6</bpmn:incoming>
+      <bpmn:outgoing>f7</bpmn:outgoing>
+      <bpmn:outgoing>f8</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:userTask id="UserTask_ProcesarPago" name="Seleccionar método de pago">
+      <bpmn:incoming>f8</bpmn:incoming>
+      <bpmn:outgoing>f9</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:exclusiveGateway id="Gateway_Metodo" name="Método de pago">
+      <bpmn:incoming>f9</bpmn:incoming>
+      <bpmn:outgoing>f10</bpmn:outgoing>
+      <bpmn:outgoing>f11</bpmn:outgoing>
+      <bpmn:outgoing>f12</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:userTask id="UserTask_CobroEfectivo" name="Ingresar monto recibido y calcular cambio">
+      <bpmn:incoming>f10</bpmn:incoming>
+      <bpmn:outgoing>f13</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:userTask id="UserTask_CobroDigital" name="Cobro por QR / Billetera">
+      <bpmn:incoming>f11</bpmn:incoming>
+      <bpmn:outgoing>f14</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:userTask id="UserTask_CobroMixto" name="Ingresar efectivo + QR (suma = total)">
+      <bpmn:incoming>f12</bpmn:incoming>
+      <bpmn:outgoing>f15</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:serviceTask id="ServiceTask_VerificarStock" name="Verificar stock por ítem">
+      <bpmn:incoming>f13</bpmn:incoming>
+      <bpmn:incoming>f14</bpmn:incoming>
+      <bpmn:incoming>f15</bpmn:incoming>
+      <bpmn:outgoing>f16</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:exclusiveGateway id="Gateway_Stock" name="¿Stock suficiente?">
+      <bpmn:incoming>f16</bpmn:incoming>
+      <bpmn:outgoing>f17</bpmn:outgoing>
+      <bpmn:outgoing>f18</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:serviceTask id="ServiceTask_RegistrarVenta" name="Registrar venta (ticket + hash)">
+      <bpmn:incoming>f17</bpmn:incoming>
+      <bpmn:outgoing>f19</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="ServiceTask_DescontarInventario" name="Descontar inventario (decrementar_inventario)">
+      <bpmn:incoming>f19</bpmn:incoming>
+      <bpmn:outgoing>f20</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="ServiceTask_ImprimirTicket" name="Imprimir ticket">
+      <bpmn:incoming>f20</bpmn:incoming>
+      <bpmn:outgoing>f21</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:endEvent id="End_VentaCompletada" name="Venta completada">
+      <bpmn:incoming>f21</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="f1" sourceRef="Start_Inicio" targetRef="UserTask_Login"/>
+    <bpmn:sequenceFlow id="f2" sourceRef="UserTask_Login" targetRef="Gateway_Suscripcion"/>
+    <bpmn:sequenceFlow id="f3" name="Activa" sourceRef="Gateway_Suscripcion" targetRef="UserTask_Apertura"/>
+    <bpmn:sequenceFlow id="f4" name="Inactiva" sourceRef="Gateway_Suscripcion" targetRef="End_CuentaPausada"/>
+    <bpmn:sequenceFlow id="f5" sourceRef="UserTask_Apertura" targetRef="UserTask_AgregarItems"/>
+    <bpmn:sequenceFlow id="f6" sourceRef="UserTask_AgregarItems" targetRef="Gateway_MasItems"/>
+    <bpmn:sequenceFlow id="f7" name="Sí" sourceRef="Gateway_MasItems" targetRef="UserTask_AgregarItems"/>
+    <bpmn:sequenceFlow id="f8" name="No" sourceRef="Gateway_MasItems" targetRef="UserTask_ProcesarPago"/>
+    <bpmn:sequenceFlow id="f9" sourceRef="UserTask_ProcesarPago" targetRef="Gateway_Metodo"/>
+    <bpmn:sequenceFlow id="f10" name="EFECTIVO" sourceRef="Gateway_Metodo" targetRef="UserTask_CobroEfectivo"/>
+    <bpmn:sequenceFlow id="f11" name="QR / BILLETERA" sourceRef="Gateway_Metodo" targetRef="UserTask_CobroDigital"/>
+    <bpmn:sequenceFlow id="f12" name="MIXTO" sourceRef="Gateway_Metodo" targetRef="UserTask_CobroMixto"/>
+    <bpmn:sequenceFlow id="f13" sourceRef="UserTask_CobroEfectivo" targetRef="ServiceTask_VerificarStock"/>
+    <bpmn:sequenceFlow id="f14" sourceRef="UserTask_CobroDigital" targetRef="ServiceTask_VerificarStock"/>
+    <bpmn:sequenceFlow id="f15" sourceRef="UserTask_CobroMixto" targetRef="ServiceTask_VerificarStock"/>
+    <bpmn:sequenceFlow id="f16" sourceRef="ServiceTask_VerificarStock" targetRef="Gateway_Stock"/>
+    <bpmn:sequenceFlow id="f17" name="Sí" sourceRef="Gateway_Stock" targetRef="ServiceTask_RegistrarVenta"/>
+    <bpmn:sequenceFlow id="f18" name="No (reintentar)" sourceRef="Gateway_Stock" targetRef="UserTask_AgregarItems"/>
+    <bpmn:sequenceFlow id="f19" sourceRef="ServiceTask_RegistrarVenta" targetRef="ServiceTask_DescontarInventario"/>
+    <bpmn:sequenceFlow id="f20" sourceRef="ServiceTask_DescontarInventario" targetRef="ServiceTask_ImprimirTicket"/>
+    <bpmn:sequenceFlow id="f21" sourceRef="ServiceTask_ImprimirTicket" targetRef="End_VentaCompletada"/>
+
+  </bpmn:process>
+
+</bpmn:definitions>

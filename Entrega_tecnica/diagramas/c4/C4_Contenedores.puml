@@ -1,0 +1,39 @@
+@startuml C4_Contenedores
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+title Sistema VenxPOS - Nivel 2: Contenedores
+
+Person(cajero, "Cajero")
+Person(dueno, "Dueno / Admin de negocio")
+Person(superadmin, "Superadministrador")
+
+System_Boundary(vercel, "Vercel (hosting de SPA)") {
+  Container(spa_saas, "Panel SaaS", "React 19 + Vite + TypeScript + TailwindCSS + Zustand", "Administracion: dashboard de negocio, panel superadmin, suscripciones, sucursales, usuarios y auditoria.")
+  Container(spa_pos, "POS", "React 19 + Vite + TypeScript + TailwindCSS + Zustand", "Punto de venta: carrito, cobro, ticket, devoluciones, caja y turnos.")
+}
+
+System_Boundary(sb, "Supabase (Backend as a Service)") {
+  Container(auth, "Supabase Auth", "GoTrue / JWT", "Autenticacion de superadmin, admin de negocio y cajero.")
+  Container(db, "Base de datos PostgreSQL", "PostgreSQL + RLS", "29 tablas y ~50 funciones RPC; aislamiento por tenant/sucursal via RLS.")
+  Container(edge, "Edge Functions", "Deno TypeScript", "11 funciones: aprobacion de tenants, facturacion, correo, PDF y auditoria.")
+  ContainerDb(storage, "Storage", "Supabase Storage", "PDF de facturas y comprobantes de pago.")
+}
+
+System_Ext(resend, "Resend", "Servicio de correo transaccional.")
+
+Rel(cajero, spa_pos, "Opera el punto de venta", "HTTPS")
+Rel(dueno, spa_saas, "Administra su negocio", "HTTPS")
+Rel(superadmin, spa_saas, "Administra la plataforma", "HTTPS")
+
+Rel(spa_saas, auth, "Autentica", "HTTPS")
+Rel(spa_pos, auth, "Autentica", "HTTPS")
+Rel(spa_saas, db, "Lee/escribe y ejecuta RPC", "REST/PostgREST")
+Rel(spa_pos, db, "Lee/escribe y ejecuta RPC", "REST/PostgREST")
+Rel(spa_saas, edge, "Invoca funciones", "HTTPS")
+Rel(spa_pos, edge, "Invoca funciones", "HTTPS")
+Rel(edge, db, "service_role (server-side)", "SQL")
+Rel(edge, auth, "Valida JWT", "HTTPS")
+Rel(edge, resend, "Envia correos", "HTTPS API")
+Rel(edge, storage, "Genera/almacena PDF", "HTTPS")
+
+@enduml

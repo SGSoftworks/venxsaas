@@ -1,0 +1,33 @@
+%% Despliegue de VenxPOS
+flowchart LR
+    subgraph Usuarios
+        B1[Navegador superadmin/dueño]
+        B2[Navegador cajero]
+    end
+
+    subgraph CDN["Hosting estático (CDN)"]
+        S1["Vercel<br/>venxsaas"]
+        S2["Netlify<br/>venxpos-pos"]
+    end
+
+    subgraph Supa["Supabase Project beacnoxukkoellhecofm"]
+        AU[Auth]
+        PG[("PostgreSQL + RLS")]
+        RS[PostgREST]
+        ST[Storage invoices]
+        FN[Edge Functions]
+    end
+
+    RM[Resend]
+
+    B1 -->|HTTPS| S1
+    B2 -->|HTTPS| S2
+    S1 --> AU
+    S2 --> AU
+    S1 --> RS
+    S2 --> RS
+    RS --> PG
+    S1 --> FN
+    FN --> PG
+    FN --> ST
+    FN --> RM

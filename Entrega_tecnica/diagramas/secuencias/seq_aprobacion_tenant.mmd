@@ -1,0 +1,21 @@
+%% Secuencia: registro y aprobación de tenant (pago manual)
+sequenceDiagram
+    actor P as Propietario
+    actor SA as Superadministrador
+    participant L as Landing SaaS
+    participant FN as Edge Functions
+    participant PG as PostgreSQL
+
+    P->>L: Registro (negocio, NIT, correo, plan)
+    L->>FN: create-signup
+    FN->>FN: Valida datos y duplicados
+    FN->>PG: INSERT tenants (estado=pending_approval)
+    FN-->>P: Solicitud enviada (esperando aprobación)
+
+    SA->>FN: approve-tenant (tenant_id, comprobante)
+    FN->>PG: INSERT payments (MANUAL, tipo=initial)
+    FN->>PG: RPC approve_tenant / activate_tenant
+    PG-->>FN: tenant activo + suscripción activa
+    FN->>PG: RPC generar_factura_desde_pago (sin impuestos)
+    FN->>FN: generate-pdf (pdf-lib) -> Storage
+    FN-->>SA: Tenant aprobado

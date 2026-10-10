@@ -1,0 +1,23 @@
+@startuml C4_Contexto
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+title Sistema VenxPOS - Nivel 1: Contexto
+
+Person(cajero, "Cajero", "Empleado de sucursal que registra ventas, devoluciones y cierres de caja.")
+Person(dueno, "Dueno / Admin de negocio", "Administra sucursales, usuarios, productos, inventario y suscripcion.")
+Person(superadmin, "Superadministrador", "Operador de la plataforma SaaS: aprueba negocios, gestiona planes y facturacion.")
+
+System(venxpos, "VenxPOS", "Plataforma SaaS de punto de venta: panel administrativo multi-tenant y aplicacion POS de sucursal.")
+
+System_Ext(supabase, "Supabase", "Infraestructura en la nube: Auth, PostgreSQL, Storage y Edge Functions.")
+System_Ext(resend, "Resend", "Servicio de correo transaccional: invitaciones y notificaciones.")
+System_Ext(vercel, "Vercel", "Hosting de la SPA con rewrites.")
+
+Rel(cajero, venxpos, "Usa el POS (ventas, devoluciones, caja)", "HTTPS")
+Rel(dueno, venxpos, "Administra el negocio", "HTTPS")
+Rel(superadmin, venxpos, "Administra la plataforma", "HTTPS")
+Rel(venxpos, supabase, "Auth, datos, RPC y Edge Functions", "HTTPS / REST / PostgREST")
+Rel(supabase, resend, "Envio de correos", "HTTPS API")
+Rel(vercel, venxpos, "Sirve la SPA", "HTTPS")
+
+@enduml

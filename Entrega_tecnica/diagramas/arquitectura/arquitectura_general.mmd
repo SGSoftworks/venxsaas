@@ -1,0 +1,41 @@
+%% Arquitectura general de VenxPOS
+%% Fuente editable: Mermaid. Render best-effort documentado en el README.
+flowchart TB
+    subgraph Clientes
+        U1[Superadministrador]
+        U2[Dueño de negocio / Gerente]
+        U3[Cajero]
+    end
+
+    subgraph Frontends["Aplicaciones (SPA React 19 + Vite + TS)"]
+        SAAS["VenxPOS SaaS<br/>panel multi-inquilino"]
+        POS["VenxPOS POS<br/>terminal de caja"]
+    end
+
+    subgraph Backend["Supabase (BaaS)"]
+        AUTH[Supabase Auth]
+        REST[PostgREST]
+        DB[("PostgreSQL<br/>29 tablas · RLS · RPCs")]
+        STORAGE[Storage · bucket invoices]
+        EF[Edge Functions · Deno]
+    end
+
+    EXT1[Resend · email]
+    HOST1[Vercel]
+    HOST2[Netlify]
+
+    U1 --> SAAS
+    U2 --> SAAS
+    U3 --> POS
+
+    SAAS -->|JWT| AUTH
+    POS -->|JWT| AUTH
+    SAAS -->|RLS| REST
+    POS -->|RLS| REST
+    REST --> DB
+    SAAS --> EF
+    EF --> DB
+    EF --> STORAGE
+    EF --> EXT1
+    HOST1 -.hosting.-> SAAS
+    HOST2 -.hosting.-> POS
