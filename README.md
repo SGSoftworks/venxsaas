@@ -43,7 +43,8 @@ supabase/
     ├── generate-pdf/
     └── send-email/
 
-docs/                 # Documentación completa
+docs/                 # Arquitectura del sistema
+Entrega_tecnica/      # Documentación técnica completa
 ```
 
 ## Scripts
@@ -97,28 +98,17 @@ npm run deploy
 ## Seguridad
 
 - RLS en todas las tablas (aislamiento multi-tenant)
-- Edge Functions con `SECURITY DEFINER`
+- `service_role` solo en Edge Functions (nunca en el bundle)
 - Pagos registrados manualmente por el administrador
-- CSP, CORS, CSRF configurados
-- Llaves privadas solo en Edge Functions
-- Auditoría completa documentada en `docs/SECURITY_REPORT.md`
+- Cabeceras HTTP (CSP, `X-Frame-Options: DENY`, etc.) y CORS
+- Auditoría en las tablas `audit_logs` y `eventos_auditoria`
 
 ## Documentación
 
 | Documento | Contenido |
 |---|---|
-| `ARCHITECTURE.md` | Arquitectura general del sistema |
-| `SAAS_ARCHITECTURE.md` | Arquitectura detallada del SaaS |
-| `POS_ARCHITECTURE.md` | Arquitectura del POS desktop |
-| `DATABASE.md` | Esquema de base de datos |
-| `SECURITY_REPORT.md` | Auditoría de seguridad |
-| `RISK_ANALYSIS.md` | Matriz de riesgos |
-| `PRODUCTION_READINESS.md` | Checklist de producción |
-| `PAYMENTS_FLOW.md` | Flujo de pagos |
-| `DEPLOY_GUIDE.md` | Guía de despliegue |
-| `BACKUP_RECOVERY.md` | Backup y recuperación |
-| `RLS_AUDIT.md` | Auditoría de políticas RLS |
-| `PRODUCTION_CHECKLIST.md` | Checklist pre-lanzamiento |
+| `Entrega_tecnica/` | Documentación técnica completa: requerimientos, stack, arquitectura, modelo de datos, BPMN, C4, matriz de trazabilidad, plan de pruebas e informe de auditoría. |
+| `docs/ARCHITECTURE.md` | Resumen de la arquitectura del sistema. |
 
 ## Licencia
 

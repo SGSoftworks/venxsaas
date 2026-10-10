@@ -1,87 +1,105 @@
-# VenxPOS — Arquitectura General
+# VenxPOS — Arquitectura del Sistema
 
-## Stack
+Documento de arquitectura del proyecto (panel SaaS + punto de venta). Refleja el estado real del código y de la base de datos. La documentación técnica completa está en `Entrega_tecnica/`.
+
+## 1. Visión general
+
+VenxPOS se compone de **dos aplicaciones SPA independientes** que comparten **un único backend Supabase**:
+
+- **Panel SaaS** (`venxpos-saas`): administración multi-inquilino (dashboard de negocio y panel superadmin).
+- **POS** (`venxpos`): punto de venta de sucursal (ventas, devoluciones, caja).
+
+No existe un servidor de aplicación propio. La lógica privilegiada vive en **funciones RPC de PostgreSQL** y en **Edge Functions de Deno**; el frontend consume el resto directamente mediante **PostgREST + RLS**.
+
+## 2. Stack
 
 | Capa | Tecnología |
 |---|---|
-| Frontend | React 19, TypeScript, Vite 8, TailwindCSS v4, Zustand, React Router v7 |
-| Backend | Supabase (Auth, Database, Storage, Edge Functions Deno) |
-| Pagos | Manual (admin registra pagos) |
-| Email | Resend |
-| Hosting | Vercel (SPA), Netlify (POS web), Supabase (EF) |
-| Exportación | xlsx |
+| Frontend | React 19, TypeScript, Vite, TailwindCSS v4, Zustand |
+| Routing | React Router v7 (panel SaaS) |
+| Formularios | React Hook Form + Zod |
+| Backend | Supabase: Auth (JWT), PostgreSQL, PostgREST, Storage, Edge Functions (Deno) |
+| Pagos | Manual (el superadministrador registra/aprueba pagos; sin pasarela) |
+| Email | Resend (vía Edge Function) |
+| Hosting | Vercel (SPA con rewrites) |
+| Exportación | `xlsx` (Excel); `jspdf` (PDF, POS) |
+| Animaciones | GSAP + ScrollTrigger (landing) |
 
-## Estructura del proyecto
+Proyecto Supabase: `beacnoxukkoellhecofm`.
+
+## 3. Estructura
 
 ```
 venxpos-saas/
-├── src/                    # Frontend React
-│   ├── components/         # UI, auth, dashboard, admin, landing, legal
-│   ├── store/              # Zustand (auth, ui, billing)
-│   ├── lib/                # Clientes Supabase, utilidades, export, validators
-│   ├── types/              # Tipos TypeScript
-│   └── assets/             # Imágenes, branding
+├── src/
+│   ├── components/   # landing, auth, dashboard, admin, legal, ui
+│   ├── lib/          # cliente Supabase, utilidades, export, validators, appConfig
+│   ├── store/        # Zustand (auth, ui, billing)
+│   └── types/        # tipos TypeScript
 ├── supabase/
-│   ├── functions/          # 19 Edge Functions Deno
-│   │   └── _shared/        # CORS, auth, notificaciones, env
-│   └── migrations/         # 64 migraciones SQL
-├── api/                    # Vercel serverless wrappers (CRON)
-├── scripts/                # Scripts de seed/simulación
-└── vercel.json             # CSP, CRON jobs, rewrites
+│   ├── migrations/   # 74 migraciones SQL
+│   └── functions/    # 11 Edge Functions Deno + _shared/
+├── docs/             # documentación
+└── vercel.json       # CSP, cabeceras y rewrites SPA
 ```
 
-## Frontend — Routing
+## 4. Arquitectura por capas
 
-- **Público**: LandingPage, LoginPage, PaymentPage, CheckoutPage, PaymentSuccess, PaymentPending, PaymentFailed
-- **Protegido (AuthGuard)**: Dashboard (home, inventario, facturas, sucursales, analytics, suscripción, configuración)
-- **Admin (GerenteGuard)**: AdminDashboard, AdminClients, AdminPayments, AdminBilling, AdminAnalytics, AdminRequests
-- **Estados especiales**: PendingApprovalPage (espera aprobación), ChangePasswordPage (primer login)
-- **Páginas legales**: 7 páginas (términos, privacidad, cookies, etc.)
-- **Errores**: 404, 403, 500
+1. **Presentación**: SPAs React. Enrutamiento con guards por rol.
+2. **Aplicación/servicios**: módulos y stores del frontend; servicios de dominio que encapsulan queries y RPC.
+3. **Datos**: PostgreSQL con RLS; RPCs para operaciones atómicas; triggers y contadores.
+4. **Plataforma**: Auth, PostgREST, Storage y Edge Functions (Deno) con `service_role`.
 
-## Backend — Supabase
+### Frontend — routing
 
-### Auth
-- Supabase Auth nativo (email/password)
-- JWT verificado en Edge Functions via `supabaseAdmin.auth.getUser()`
-- Superadmin detectado via tabla `superadmins` + función `is_superadmin()`
+- **Público**: landing, login, registro, páginas legales.
+- **Dashboard de negocio** (`/dashboard/*`): `AuthGuard` + `AdminNegocioGuard`.
+- **Administración** (`/admin/*`): `GerenteGuard` (superadmin).
+- **POS**: pantalla única `App → Login → ConnectionGuard → POSLayout` (online), con `Receipt` para impresión.
 
-### Edge Functions (12)
-- **Registro**: `create-signup` → `register-tenant` → `approve-tenant`
-- **Pagos**: Manual (admin registra el pago y activa al tenant)
-- **Suscripciones**: MVP — renovaciones/cambios de plan self-service **próximamente** (RPCs `approve_renewal`/`approve_plan_change` conservados en BD sin uso)
-- **Facturación**: `generate-invoice`, `generate-pdf`
-- **Admin**: `create-client`, `create-branch`, `update-branch`, `admin-reset-password`
-- **Utilidades**: `send-email`, `log-audit`
+## 5. Modelo de datos
 
-### Shared Modules (`_shared/`)
-- `cors.ts` — Whitelist de orígenes permitidos
-- `supabase.ts` — `supabaseAdmin` (service_role) + verifyAuth, verifySuperAdmin, verifyInternalKey
-- `notify.ts` + `email-template.ts` — Notificaciones transaccionales
-- `env.ts` — Mapeo de variables de entorno
+- **29 tablas** en el esquema `public`.
+- **Sin tipos `ENUM`**: los dominios se modelan con columnas de texto y restricciones `CHECK`.
+- **~50 funciones** (RPC/helpers).
+- **RLS habilitada en todas las tablas**; aislamiento por tenant (`get_tenant_id`) y por sucursal (`get_user_sucursal`).
+- Concurrencia de inventario con **bloqueo optimista** (`inventario_sucursal.version`).
 
-### Base de datos
-- **SaaS**: tenants, plans, subscriptions, payments, facturas_saas, branch_accounts, pending_signups, subscription_requests, payment_proofs, audit_logs, superadmins
-- **POS**: sucursales, usuarios, productos, inventario_sucursal, ventas, venta_detalles, aperturas_caja, cierres_caja, categorias, movimientos_inventario, devoluciones, eventos_auditoria, ventas_conflicto, empresas
-- **RLS**: Políticas por tenant + superadmin. Uso de `get_user_sucursal()` para POS.
+Detalle en `Entrega_tecnica/04_Modelo_Entidad_ER.md`.
 
-### Seguridad
-- JWT validation en Edge Functions
-- Pagos registrados manualmente por el administrador
-- RLS en todas las tablas (excepto plans y superadmins, intencional)
-- Service_role solo en Edge Functions (nunca en frontend)
-- CSP en vercel.json
-- SECURITY DEFINER con `search_path = ''` en todas las RPCs
+## 6. Multi-tenancy y roles
 
-## Flujo de registro y pago
+| Rol | Alcance | Guard |
+|---|---|---|
+| Superadministrador | Plataforma (tenants, planes, pagos, facturas, analítica global) | `GerenteGuard` |
+| Administrador de negocio | Su tenant (sucursales, inventario, suscripción) | `AuthGuard` + `AdminNegocioGuard` |
+| Cajero | POS de su sucursal (ventas, devoluciones, caja) | Sesión POS + sucursal |
 
-1. Usuario llena formulario en LandingPage → `create-signup` (EF pública)
-2. (Flujo de pago manual — el administrador registra el pago y activa al tenant)
-5. Admin aprueba manualmente → `approve-tenant`
-6. Usuario hace login, cambia contraseña, accede al dashboard
-7. POS web vinculado via `branch_accounts`
+El aislamiento se garantiza por **RLS**; `service_role` se usa únicamente dentro de las Edge Functions.
 
-## Despliegue
-- Frontend: `npm run build` → Vercel (SPA rewrites)
-- Edge Functions: `supabase functions deploy <name> --project-ref <ref>`
-- Migraciones: `supabase db push` o `supabase db query --file <file> --linked`
+## 7. Edge Functions (Deno)
+
+`create-signup`, `register-tenant`, `create-client`, `approve-tenant`, `admin-reset-password`, `create-branch`, `update-branch`, `generate-invoice`, `generate-pdf`, `log-audit`, `send-email`. Código compartido en `_shared/` (`cors`, `supabase`, `env`, `notify`, plantillas).
+
+## 8. Seguridad
+
+- RLS multi-inquilino en todas las tablas.
+- `service_role` solo en Edge Functions (nunca en el bundle).
+- Cabeceras HTTP en `vercel.json`: CSP, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `Permissions-Policy`.
+- CORS con lista blanca de orígenes (Edge Functions).
+- Validación con Zod en el frontend y `CHECK`/RPC en la base de datos.
+- Auditoría en `audit_logs` y `eventos_auditoria`.
+
+## 9. Despliegue
+
+- **Base de datos y Functions**: Supabase (`supabase db push` / `supabase functions deploy`).
+- **Frontend SaaS**: Vercel (`npm run build` + `vercel --prod`), con rewrites SPA.
+- **POS**: SPA independiente, enlazada desde el panel.
+
+## 10. Libro de limitaciones
+
+Ver `Entrega_tecnica/09_Informe_Auditoria_y_Brechas.md` (p. ej. lógica de venta en el cliente con `inserts` directos + RPC de inventario en lugar de la RPC transaccional `finalizar_venta`).
+
+---
+
+*Documento basado en la investigación técnica de `Entrega_tecnica/`. Fuentes: código de ambos repositorios, 74 migraciones y la introspección del esquema en vivo.*
