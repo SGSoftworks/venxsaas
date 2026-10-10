@@ -502,11 +502,10 @@ CREATE TABLE IF NOT EXISTS subscription_events (
 -- -----------------------------------------------------------------------------
 -- FASE 3.5 — Payments (pagos de la suscripción)
 -- -----------------------------------------------------------------------------
--- Registro de pagos (manuales y de suscripción). Se ELIMINARON las columnas
--- de pasarela de pago (wompi_* / gateway_*): el administrador registra el
--- pago y activa al tenant. Estados de pago: pending → approved → declined →
--- voided → error. `tipo` distingue el origen: initial / recurring / manual /
--- retry / plan_change.
+-- Registro de pagos (manuales y de suscripción). No hay pasarela de pago: el
+-- administrador registra el pago y activa al tenant. Estados de pago: pending →
+-- approved → declined → voided → error. `tipo` distingue el origen: initial /
+-- recurring / manual / retry / plan_change.
 -- =============================================================================
 
 CREATE TABLE IF NOT EXISTS payments (
@@ -691,9 +690,7 @@ CREATE TABLE IF NOT EXISTS payment_proofs (
 -- FASE 3.13 — Pending_signups (registros en espera de pago)
 -- -----------------------------------------------------------------------------
 -- Almacenamiento temporal del registro antes de completar el pago. Almacena
--- el hash de la contraseña. Sus columnas wompi_payment_link_id y
--- payment_reference fueron REMOVIDAS después (no se usan). Solo el superadmin
--- puede leerlo (ver RLS).
+-- el hash de la contraseña. Solo el superadmin puede leerlo (ver RLS).
 -- =============================================================================
 
 CREATE TABLE IF NOT EXISTS pending_signups (
@@ -1570,7 +1567,7 @@ END;
 $$;
 
 -- generar_factura_desde_pago(): crea la factura del SaaS a partir de un pago
--- ya aprobado. Sin IVA ni gateway: subtotal = total = monto del pago.
+-- ya aprobado. Sin impuestos: subtotal = total = monto del pago.
 CREATE OR REPLACE FUNCTION public.generar_factura_desde_pago(p_payment_id uuid)
 RETURNS uuid
 LANGUAGE plpgsql
@@ -2348,7 +2345,7 @@ VALUES
 ON CONFLICT (nombre) DO NOTHING;
 
 -- NOTA: existe además un seed de datos DEMO (supabase/seed.sql) que introduce
--- otras tarifas y un tenant de demostración. Ese archivo NO forma parte del
+-- otros precios y un tenant de demostración. Ese archivo NO forma parte del
 -- esquema (son datos de prueba), por lo que aquí solo se siembran los planes
 -- oficiales definidos en las migraciones del esquema.
 
